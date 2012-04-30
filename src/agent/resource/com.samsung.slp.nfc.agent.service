@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.samsung.slp.nfc.agent
+Exec=/usr/bin/nfc-agent

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<node name="/com/samsung/slp/nfc/manager">
+
+  <interface name="com.samsung.slp.nfc.manager">
+
+    <method name="Launch">
+      <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_service_launch"/>
+      <arg type="u" name="result_val" direction="out"/>
+    </method>
+
+    <method name="Se_only">
+      <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_service_se_only"/>
+      <arg type="u" name="result_val" direction="out"/>
+    </method>
+
+    <method name="Terminate">
+      <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="dbus_service_terminate"/>
+      <arg type="u" name="result_val" direction="out"/>
+    </method>
+
+  </interface>
+</node>
