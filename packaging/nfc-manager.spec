@@ -7,6 +7,7 @@ Group:      libs
 License:    Samsung Proprietary License
 Source0:    %{name}-%{version}.tar.gz
 Source1:    libnfc-manager-0.init.in
+Source1001: packaging/nfc-manager.manifest 
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gobject-2.0)
@@ -58,6 +59,7 @@ NFC common library (devel)
 
 
 %build
+cp %{SOURCE1001} .
 export LDFLAGS+="-Wl,--rpath=%{_prefix}/lib -Wl,--as-needed"
 mkdir cmake_tmp
 cd cmake_tmp
@@ -96,6 +98,7 @@ rm -f /etc/rc.d/rc5.d/S81libnfc-manager-0
 %postun -n nfc-common-lib -p /sbin/ldconfig
 
 %files
+%manifest nfc-manager.manifest
 %defattr(-,root,root,-)
 #@DATADIR@/data/nfc-manager-daemon/config/nfc-manager-config.txt
 %{_libdir}/libnfc.so.1
@@ -106,6 +109,7 @@ rm -f /etc/rc.d/rc5.d/S81libnfc-manager-0
 /etc/init.d/libnfc-manager-0
 
 %files devel
+%manifest nfc-manager.manifest
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/nfc.pc
 %{_includedir}/nfc/*.h
@@ -113,11 +117,13 @@ rm -f /etc/rc.d/rc5.d/S81libnfc-manager-0
 
 
 %files -n nfc-common-lib
+%manifest nfc-manager.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so.1
 %{_libdir}/libnfc-common-lib.so.1.0.0
 
 %files -n nfc-common-lib-devel
+%manifest nfc-manager.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so
 %{_libdir}/pkgconfig/nfc-common-lib.pc
