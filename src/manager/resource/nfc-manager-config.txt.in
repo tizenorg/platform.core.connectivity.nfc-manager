@@ -1,0 +1,9 @@
+# NFC MANAGER SERVER LLCP CONFIG AND OPTION
+
+[service]
+data_exchange_service=true
+data_exchange_client=true
+connection_handover_service=true
+
+[option]
+ADD=on

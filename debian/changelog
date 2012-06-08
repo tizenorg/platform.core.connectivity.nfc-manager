@@ -1,0 +1,7 @@
+nfc-manager (0.0.1-64) unstable; urgency=low
+
+  * change spec file
+  * Git: pkgs/n/nfc-manager
+  * Tag: nfc-manager_0.0.1-64
+
+ -- Junyong Sim <junyong.sim@samsung.com>  Mon, 23 Apr 2012 01:53:06 +0900
