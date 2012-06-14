@@ -1,7 +1,4 @@
-
 /*
- * {nfc-manager}
- *
  * Copyright (C) 2010 NXP Semiconductors
  * Copyright (C) 2012 Samsung Electronics Co., Ltd
  *
@@ -17,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 
 #ifndef __NET_NFC_INTERNAL_TYPEDEF_H__

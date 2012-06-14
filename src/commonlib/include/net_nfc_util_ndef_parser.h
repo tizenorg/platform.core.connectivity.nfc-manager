@@ -1,6 +1,4 @@
 /*
- * {nfc-manager}
- *
  * Copyright (C) 2010 NXP Semiconductors
  * Copyright (C) 2012 Samsung Electronics Co., Ltd
  *
