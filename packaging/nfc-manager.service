@@ -1,0 +1,9 @@
+
+[Unit]
+Description=Start the NFC daemon
+
+[Service]
+ExecStart=/usr/bin/nfc-manager-daemon
+
+[Install]
+WantedBy=multi-user.target
