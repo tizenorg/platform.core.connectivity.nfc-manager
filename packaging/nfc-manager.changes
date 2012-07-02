@@ -1,0 +1,15 @@
+* Mon Jun 25 2012 William Douglas <william.douglas@intel.com> 9bd2c87
+- Add systemd unit files
+
+* Wed Jun 13 2012 Kim Kibum <kb0929.kim@samsung.com> 29d6e74
+- apply FSL license
+
+* Tue May 29 2012 Ryan Ware <ryan.r.ware@intel.com> da4b0df
+- Add default Smack manifest for nfc-manager.spec
+
+* Mon Apr 30 2012 Kim Kibum <kb0929.kim@samsung.com> 013af0c
+- update tizen source
+
+* Sun Apr 29 2012 Hyesook Choi <hs20.choi@samsung.com> 2b4e9c3
+- Initial empty repository
+
