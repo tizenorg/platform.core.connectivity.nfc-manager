@@ -4,7 +4,7 @@ Summary:    NFC framework manager
 Version: 0.0.1
 Release:    1
 Group:      libs
-License:    Samsung Proprietary License
+License:    Flora Software License
 Source0:    %{name}-%{version}.tar.gz
 Source1:    libnfc-manager-0.init.in
 Source101:  nfc-manager.service 
