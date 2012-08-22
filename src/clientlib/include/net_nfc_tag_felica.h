@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_TAG_FELICA_H__
 #define __NET_NFC_TAG_FELICA_H__
 

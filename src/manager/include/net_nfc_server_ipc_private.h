@@ -34,7 +34,7 @@ typedef struct net_nfc_server_info_t
 	int server_sock_fd ;
 	int client_sock_fd ; /* current client sock fd*/
 
-	server_state_e state;
+	uint32_t state;
 #ifdef BROADCAST_MESSAGE
 	net_nfc_server_received_message_s* received_message;
 #endif
@@ -55,16 +55,18 @@ bool net_nfc_server_set_current_client_target_handle(int socket_fd, net_nfc_targ
 
 bool net_nfc_server_get_client_type(int socket, int* client_type);
 bool net_nfc_server_set_client_type(int socket, int type);
-bool net_nfc_server_set_server_state(server_state_e state);
-server_state_e net_nfc_server_get_server_state();
+bool net_nfc_server_set_server_state(uint32_t state);
+
+bool net_nfc_server_unset_server_state(uint32_t state);
+uint32_t net_nfc_server_get_server_state();
 
 bool _net_nfc_send_response_msg (int msg_type, ...);
 bool _net_nfc_check_client_handle ();
-server_state_e net_nfc_get_server_state();
 void net_nfc_server_set_tag_info(void * info);
 net_nfc_current_target_info_s* net_nfc_server_get_tag_info();
 void net_nfc_server_free_current_tag_info();
-
+void net_nfc_server_set_launch_state(int socket, bool enable);
+bool net_nfc_server_is_set_launch_state();
 
 #endif
 

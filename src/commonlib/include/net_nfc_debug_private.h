@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_DEBUG_PRIVATE_H__
 #define __NET_NFC_DEBUG_PRIVATE_H__
 

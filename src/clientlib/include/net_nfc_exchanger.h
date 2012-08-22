@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __SLP_NET_NFC_EXCHANGER_H__
 #define __SLP_NET_NFC_EXCHANGER_H__
 

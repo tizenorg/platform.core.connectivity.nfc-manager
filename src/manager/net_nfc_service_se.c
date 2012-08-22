@@ -14,13 +14,13 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_debug_private.h"
 #include "net_nfc_service_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_dbus_service_obj_private.h"
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
 #include "net_nfc_manager_util_private.h"
@@ -30,90 +30,21 @@
 #include <glib.h>
 #include <malloc.h>
 
-#include <TapiCommon.h>
-#include <TelSim.h>
+#include <tapi_common.h>
 #include <ITapiSim.h>
 
 /* define */
 /* For ESE*/
 se_setting_t g_se_setting;
 
-
 /* For UICC */
-
-static unsigned int tapi_event_list[] =
-{
-        TAPI_EVENT_SIM_APDU_CNF,
-        TAPI_EVENT_SIM_ATR_CNF
-};
-
-typedef struct _uicc_context_t{
-	int req_id;
-	void* trans_param;
-}uicc_context_t;
-
-static unsigned int *p_event_subscription_ids = NULL;
+struct tapi_handle *uicc_handle = NULL;
 
 static bool net_nfc_service_check_sim_state(void);
-static int  sim_callback  (TelTapiEvent_t *sim_event);
 
-#define TAPI_EVENT_COUNT (sizeof(tapi_event_list) / sizeof(unsigned int))
-
-static GList * list = NULL;
-
-
-static int _compare_func (gconstpointer key1, gconstpointer key2)
-{
-	uicc_context_t * arg1 = (uicc_context_t*) key1;
-	uicc_context_t * arg2 = (uicc_context_t *) key2;
-
-	if (arg1->req_id < arg2->req_id){
-		return -1;
-	}
-	else if (arg1->req_id > arg2->req_id){
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-static void _append_data(uicc_context_t* data)
-{
-	if (data != NULL)
-	{
-		list = g_list_append (list, data);
-	}
-}
-
-static uicc_context_t* _get_data(int req_id)
-{
-	if(list != NULL)
-	{
-
-		GList* found = NULL;
-
-		uicc_context_t value = {0, NULL};
-		value.req_id = req_id;
-
-		found = g_list_find_custom (list, &value, _compare_func );
-
-		if(found != NULL){
-			return (uicc_context_t*)found->data;
-		}
-	}
-
-	return NULL;
-}
-
-static void _remove_data(uicc_context_t* data)
-{
-	if(list != NULL)
-	{
-
-		list = g_list_remove (list, data);
-	}
-}
+static void _uicc_transmit_apdu_cb(TapiHandle *handle, int result, void *data, void *user_data);
+static void _uicc_get_atr_cb(TapiHandle *handle, int result, void *data, void *user_data);
+static void _uicc_status_noti_cb(TapiHandle *handle, const char *noti_id, void *data, void *user_data);
 
 void net_nfc_service_se_detected(net_nfc_request_msg_t *msg)
 {
@@ -153,123 +84,81 @@ void net_nfc_service_se_detected(net_nfc_request_msg_t *msg)
 	g_se_setting.open_request_trans_param = NULL;
 }
 
-
 bool net_nfc_service_tapi_init(void)
 {
+	char **cpList = NULL;
+
 	DEBUG_SERVER_MSG("tapi init");
 
-	unsigned int event_counts = TAPI_EVENT_COUNT;
+	cpList = tel_get_cp_name_list();
 
-	if ( tel_init() == TAPI_API_SUCCESS)
+	uicc_handle = tel_init(cpList[0]);
+	if (uicc_handle == NULL)
 	{
-		if((p_event_subscription_ids = (unsigned int *)calloc(1, sizeof(tapi_event_list))) == NULL)
-		{
-			return false;
-		}
+		int error;
 
-
-		int i = 0;
-
-		for(; i < event_counts; i++)
-		{
-			tel_register_event(tapi_event_list[i], &(p_event_subscription_ids[i]), (TelAppCallback)sim_callback, NULL);
-		}
-
+		error = tel_register_noti_event(uicc_handle, TAPI_NOTI_SIM_STATUS, _uicc_status_noti_cb, NULL);
 	}
 	else
 	{
-		DEBUG_SERVER_MSG(" tel_init() failed");
+		DEBUG_SERVER_MSG("tel_init() failed");
 		return false;
 	}
 
-	tel_register_app_name("com.samsung.nfc");
-
-	DEBUG_SERVER_MSG(" tel_init() is success");
+	DEBUG_SERVER_MSG("tel_init() is success");
 
 	return net_nfc_service_check_sim_state();
-
 }
 
 void net_nfc_service_tapi_deinit(void)
 {
 	DEBUG_SERVER_MSG("deinit tapi");
 
-	unsigned int event_counts = TAPI_EVENT_COUNT;
-	int i = 0;
+	tel_deregister_noti_event(uicc_handle, TAPI_NOTI_SIM_STATUS);
 
-	if(p_event_subscription_ids != NULL)
-	{
-		for(; i < event_counts; i++){
-			tel_deregister_event(p_event_subscription_ids[i]);
-		}
-	}
-
-	tel_deinit();
-
-	if(p_event_subscription_ids != NULL)
-	{
-		free(p_event_subscription_ids);
-		p_event_subscription_ids = NULL;
-	}
+	tel_deinit(uicc_handle);
 }
 
-bool net_nfc_service_transfer_apdu(data_s* apdu, void* trans_param)
+bool net_nfc_service_transfer_apdu(data_s *apdu, void *trans_param)
 {
-	if(apdu == NULL)
-		return false;
+	TelSimApdu_t apdu_data = { 0 };
+	int result;
 
-	TelSimApdu_t  apdu_data = {0};
+	DEBUG_SERVER_MSG("tranfer apdu");
+
+	if (apdu == NULL)
+		return false;
 
 	apdu_data.apdu = apdu->buffer;
 	apdu_data.apdu_len = apdu->length;
 
-	DEBUG_SERVER_MSG("tranfer apdu \n");
-
-	int req_id = 0;
-	TapiResult_t error = tel_req_sim_apdu(&apdu_data, (int *)&req_id);
-
-	if(error != TAPI_API_SUCCESS)
+	result = tel_req_sim_apdu(uicc_handle, &apdu_data, _uicc_transmit_apdu_cb, trans_param);
+	if (result == 0)
 	{
-		DEBUG_SERVER_MSG("request sim apdu is failed with error = [%d] \n", error);
-		return false;
+		DEBUG_SERVER_MSG("sim apdu request is success");
 	}
 	else
 	{
-		uicc_context_t* context = calloc(1, sizeof(uicc_context_t));
-
-		if(context != NULL)
-		{
-			context->req_id = req_id;
-			_append_data(context);
-		}
-
-		DEBUG_SERVER_MSG("sim apdu request is success \n");
+		DEBUG_SERVER_MSG("request sim apdu is failed with error = [%d]", result);
+		return false;
 	}
 
 	return true;
 }
 
-bool net_nfc_service_request_atr(void* trans_param)
+bool net_nfc_service_request_atr(void *trans_param)
 {
-	int req_id = 0;
-	TapiResult_t error = tel_req_sim_atr((int *)&req_id);
+	int result;
 
-	if(error != TAPI_API_SUCCESS)
+	result = tel_req_sim_atr(uicc_handle, _uicc_get_atr_cb, trans_param);
+	if(result == 0)
 	{
-		DEBUG_SERVER_MSG("failed to request ATR  = [%d]\n", error);
-		return false;
+		DEBUG_SERVER_MSG("request is success");
 	}
 	else
 	{
-		uicc_context_t* context = calloc(1, sizeof(uicc_context_t));
-
-		if(context != NULL)
-		{
-			context->req_id = req_id;
-			_append_data(context);
-		}
-
-		DEBUG_SERVER_MSG("request is success \n");
+		DEBUG_SERVER_MSG("failed to request ATR  = [%d]", result);
+		return false;
 	}
 
 	return true;
@@ -277,107 +166,90 @@ bool net_nfc_service_request_atr(void* trans_param)
 
 static bool net_nfc_service_check_sim_state(void)
 {
+	TelSimCardStatus_t state = (TelSimCardStatus_t)0;
+	int b_card_changed = 0;
+	int error;
+
 	DEBUG_SERVER_MSG("check sim state");
 
-	TelSimCardStatus_t state = TAPI_API_SUCCESS;
-	int b_card_changed = 0;
+	error = tel_get_sim_init_info(uicc_handle, &state, &b_card_changed);
 
-	TapiResult_t error  = tel_get_sim_init_info(&state, &b_card_changed);
+	DEBUG_SERVER_MSG("current sim init state = [%d]", state);
 
-	DEBUG_SERVER_MSG("current sim init state = [%d] \n", state);
-
-	if(error != TAPI_API_SUCCESS)
+	if (error != 0)
 	{
-		DEBUG_SERVER_MSG("error = [%d] \n", error);
+		DEBUG_SERVER_MSG("error = [%d]", error);
 		return false;
 	}
-	else if(state ==TAPI_SIM_STATUS_SIM_INIT_COMPLETED || state == TAPI_SIM_STATUS_SIM_INITIALIZING)
+	else if (state == TAPI_SIM_STATUS_SIM_INIT_COMPLETED || state == TAPI_SIM_STATUS_SIM_INITIALIZING)
 	{
-		DEBUG_SERVER_MSG("sim is initialized \n");
+		DEBUG_SERVER_MSG("sim is initialized");
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("sim is not initialized \n");
+		DEBUG_SERVER_MSG("sim is not initialized");
 		return false;
 	}
 
 	return true;
 }
 
-static int  sim_callback  (TelTapiEvent_t *sim_event)
+void _uicc_transmit_apdu_cb(TapiHandle *handle, int result, void *data, void *user_data)
 {
-	DEBUG_SERVER_MSG("[SIM]Reques Id[%d]", sim_event->RequestId);
-	DEBUG_SERVER_MSG("[SIM]event state [%d]", sim_event->Status);
+	TelSimApduResp_t *apdu = (TelSimApduResp_t *)data;
+	net_nfc_response_send_apdu_t resp = { 0 };
 
-	switch(sim_event->EventType)
+	DEBUG_SERVER_MSG("_uicc_transmit_apdu_cb");
+
+	if (result == 0)
 	{
-		case TAPI_EVENT_SIM_APDU_CNF:
-		{
-			DEBUG_SERVER_MSG("TAPI_EVENT_SIM_APDU_CNF");
-
-			net_nfc_response_send_apdu_t resp = {0};
-
-			uicc_context_t* temp = _get_data(sim_event->RequestId);
-
-			if(temp != NULL)
-			{
-				resp.trans_param = temp->trans_param;
-				_remove_data(temp);
-				free(temp);
-			}
-			else
-			{
-				resp.trans_param = NULL;
-			}
-
-			if(sim_event->Status == TAPI_API_SUCCESS)
-			{
-				resp.result = NET_NFC_OK;
-			}
-			else
-			{
-				resp.result = NET_NFC_OPERATION_FAIL;
-			}
-
-			if(sim_event->pData != NULL)
-			{
-
-				TelSimApduResp_t* apdu = (TelSimApduResp_t*)sim_event->pData;
-
-				if(apdu->apdu_resp_len > 0)
-				{
-					resp.data.length = apdu->apdu_resp_len;
-					DEBUG_MSG("send response send apdu msg");
-					_net_nfc_send_response_msg (NET_NFC_MESSAGE_SEND_APDU_SE, (void*)&resp, sizeof(net_nfc_response_send_apdu_t), apdu->apdu_resp, apdu->apdu_resp_len, NULL);
-				}
-				else
-				{
-					DEBUG_MSG("send response send apdu msg");
-					_net_nfc_send_response_msg (NET_NFC_MESSAGE_SEND_APDU_SE, (void*)&resp, sizeof(net_nfc_response_send_apdu_t), NULL);
-				}
-			}
-			else
-			{
-				DEBUG_MSG("send response send apdu msg");
-				_net_nfc_send_response_msg (NET_NFC_MESSAGE_SEND_APDU_SE, (void*)&resp, sizeof(net_nfc_response_send_apdu_t), NULL);
-			}
-		}
-		break;
-
-		case TAPI_EVENT_SIM_ATR_CNF:
-		{
-			DEBUG_SERVER_MSG("TAPI_EVENT_SIM_ATR_CNF");
-		}
-		break;
-
-		default:
-		{
-			DEBUG_SERVER_MSG("[SIM]Undhandled event type [%d]", sim_event->EventType);
-			DEBUG_SERVER_MSG("[SIM]Undhandled event state [%d]", sim_event->Status);
-		}
-		break;
+		resp.result = NET_NFC_OK;
+	}
+	else
+	{
+		resp.result = NET_NFC_OPERATION_FAIL;
 	}
 
-	return 0;
+	if (apdu != NULL && apdu->apdu_resp_len > 0)
+	{
+		resp.data.length = apdu->apdu_resp_len;
+
+		DEBUG_MSG("send response send apdu msg");
+		_net_nfc_send_response_msg(NET_NFC_MESSAGE_SEND_APDU_SE, (void *)&resp, sizeof(net_nfc_response_send_apdu_t), apdu->apdu_resp, apdu->apdu_resp_len, NULL);
+	}
+	else
+	{
+		DEBUG_MSG("send response send apdu msg");
+		_net_nfc_send_response_msg(NET_NFC_MESSAGE_SEND_APDU_SE, (void *)&resp, sizeof(net_nfc_response_send_apdu_t), NULL);
+	}
 }
 
+void _uicc_get_atr_cb(TapiHandle *handle, int result, void *data, void *user_data)
+{
+	/* TODO : response message */
+
+	DEBUG_SERVER_MSG("_uicc_get_atr_cb");
+}
+
+void _uicc_status_noti_cb(TapiHandle *handle, const char *noti_id, void *data, void *user_data)
+{
+	TelSimCardStatus_t *status = (TelSimCardStatus_t *)data;
+
+	/* TODO :  */
+	DEBUG_SERVER_MSG("_uicc_status_noti_cb");
+
+	switch (*status)
+	{
+	case TAPI_SIM_STATUS_SIM_INIT_COMPLETED :
+		DEBUG_SERVER_MSG("TAPI_SIM_STATUS_SIM_INIT_COMPLETED");
+		break;
+
+	case TAPI_SIM_STATUS_CARD_REMOVED :
+		DEBUG_SERVER_MSG("TAPI_SIM_STATUS_CARD_REMOVED");
+		break;
+
+	default :
+		DEBUG_SERVER_MSG("unknown status [%d]", *status);
+		break;
+	}
+}

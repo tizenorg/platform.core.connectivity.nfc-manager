@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include <stdio.h>
 #include <dlfcn.h>
 #include <unistd.h>
@@ -24,6 +25,8 @@
 #include "net_nfc_debug_private.h"
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
+
+#include <pmapi.h>/*for pm lock*/
 
 #define NET_NFC_OEM_LIBRARY_PATH "/usr/lib/libnfc-plugin.so"
 
@@ -65,12 +68,12 @@ void* net_nfc_controller_onload()
 			DEBUG_SERVER_MSG("temp[%d]'s value = %s\n" ,i ,  token_cpuinfo[i]);
 		}
 
-		revision = atoi(token_cpuinfo[3]);
+		revision = strtol(token_cpuinfo[3] , 0 , 16);
 		DEBUG_SERVER_MSG("revision = %d\n" , revision );
 
-		if(!(strncmp(token_cpuinfo[1] , "SLP_PQ" , 6)) && (revision >= 7))
+		if((!(strncmp(token_cpuinfo[1] , "SLP_PQ" , 6)) && (revision >= 7))|| !(strncmp(token_cpuinfo[1] , "REDWOOD" , 7)))
 		{
-			DEBUG_SERVER_MSG("It's SLP_PQ && Revision 7!!\n");
+			DEBUG_SERVER_MSG("It's SLP_PQ && Revision 7!! || REDWOOD revC.\n");
 			library_path = "/usr/lib/libnfc-plugin-65nxp.so";
 
 		}
@@ -186,6 +189,20 @@ bool net_nfc_controller_unregister_listener()
 	}
 }
 
+bool net_nfc_controller_get_firmware_version(data_s **data, net_nfc_error_e *result)
+{
+	if (g_interface.get_firmware_version != NULL)
+	{
+		return g_interface.get_firmware_version(data, result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
 bool net_nfc_controller_check_firmware_version(net_nfc_error_e* result)
 {
 	if(g_interface.check_firmware_version != NULL)
@@ -286,6 +303,12 @@ bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s* handle, n
 
 bool net_nfc_controller_connect(net_nfc_target_handle_s* handle, net_nfc_error_e* result)
 {
+	int ret_val = 0;
+
+	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+
+	DEBUG_SERVER_MSG("net_nfc_controller_connect pm_lock_state [%d]!!" , ret_val);
+
 	if(g_interface.connect != NULL)
 	{
 		return g_interface.connect(handle, result);
@@ -300,6 +323,12 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s* handle, net_nfc_error_e
 
 bool net_nfc_controller_disconnect(net_nfc_target_handle_s* handle, net_nfc_error_e* result)
 {
+	int ret_val = 0;
+
+	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+
+	DEBUG_ERR_MSG("net_nfc_controller_disconnect pm_lock_state [%d]!!" , ret_val);
+
 	if(g_interface.disconnect != NULL)
 	{
 		net_nfc_server_free_current_tag_info();
@@ -531,6 +560,12 @@ bool net_nfc_controller_llcp_reject(net_nfc_target_handle_s* handle, net_nfc_llc
 
 bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s * handle, net_nfc_llcp_socket_t socket, uint8_t* service_access_name, net_nfc_error_e* result, void * user_param)
 {
+	int ret_val = 0;
+
+	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+
+	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect_by_url pm_lock_state [%d]!!" , ret_val);
+
 	if(g_interface.connect_llcp_by_url != NULL)
 	{
 		return g_interface.connect_llcp_by_url(handle, socket, service_access_name, result, user_param);
@@ -544,6 +579,12 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s * handle, ne
 }
 bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s* handle, net_nfc_llcp_socket_t socket, uint8_t service_access_point, net_nfc_error_e* result, void * user_param)
 {
+	int ret_val = 0;
+
+	ret_val = pm_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
+
+	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect pm_lock_state [%d]!!" , ret_val);
+
 	if(g_interface.connect_llcp != NULL)
 	{
 		return g_interface.connect_llcp(handle, socket, service_access_point, result, user_param);
@@ -557,6 +598,12 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s* handle, net_nfc_ll
 }
 bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s* handle, net_nfc_llcp_socket_t socket, net_nfc_error_e* result, void * user_param)
 {
+	int ret_val = 0;
+
+	ret_val = pm_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+
+	DEBUG_SERVER_MSG("net_nfc_controller_llcp_disconnect pm_lock_state [%d]!!" , ret_val);
+
 	if(g_interface.disconnect_llcp != NULL)
 	{
 		return g_interface.disconnect_llcp(handle, socket, result ,user_param);
@@ -676,6 +723,21 @@ bool net_nfc_controller_sim_test(net_nfc_error_e* result)
 	}
 }
 
+bool net_nfc_controller_prbs_test(net_nfc_error_e* result ,uint32_t tech , uint32_t rate )
+{
+	if(g_interface.prbs_test!= NULL)
+	{
+		return g_interface.prbs_test(result , tech , rate);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
+
 bool net_nfc_controller_test_mode_on(net_nfc_error_e* result)
 {
 	if(g_interface.test_mode_on!= NULL)
@@ -704,3 +766,16 @@ bool net_nfc_controller_test_mode_off(net_nfc_error_e* result)
 	}
 }
 
+bool net_nfc_controller_support_nfc(net_nfc_error_e* result)
+{
+	if(g_interface.support_nfc != NULL)
+	{
+		return g_interface.support_nfc(result);
+	}
+	else
+	{
+		*result = NET_NFC_DEVICE_DOES_NOT_SUPPORT_NFC;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}

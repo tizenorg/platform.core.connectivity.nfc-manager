@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_exchanger.h"
 #include "net_nfc_exchanger_private.h"
 #include "net_nfc.h"

@@ -13,7 +13,6 @@ CFLAGS ?= -Wall -g
 CXXFLAGS ?=  -Wall -g
 LDFLAGS ?= 
 PREFIX ?= /usr
-DATADIR ?= /opt
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
@@ -49,7 +48,6 @@ build-stamp: configure-stamp
 	for f in `find $(CURDIR)/debian/ -name "*.in"`; do \
 		cat $$f > $${f%.in}; \
 		sed -i -e "s#@PREFIX@#$(PREFIX)#g" $${f%.in}; \
-		sed -i -e "s#@DATADIR@#$(DATADIR)#g" $${f%.in}; \
 	done
 
 
@@ -83,8 +81,6 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	mkdir -p $(CURDIR)/debian/tmp/opt/data/nfc-manager-daemon/config
-	cp -af $(CURDIR)/src/manager/resource/nfc-manager-config.txt.in $(CURDIR)/debian/tmp/opt/data/nfc-manager-daemon/config/nfc-manager-config.txt
 	mkdir -p $(CURDIR)/debian/tmp/etc/init.d
 	cp -af $(CURDIR)/debian/libnfc-manager-0.init.in $(CURDIR)/debian/tmp/etc/init.d/libnfc-manager-0
 	
@@ -105,9 +101,9 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs 
+#	dh_installchangelogs 
 #	dh_installdocs
-	dh_installexamples
+#	dh_installexamples
 	dh_install --sourcedir=debian/tmp
 #	dh_installmenu
 #	dh_installdebconf	
@@ -119,7 +115,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+#	dh_installman
 	dh_link
 	dh_strip --dbg-package=libnfc-manager-dbg --dbg-package=libnfc-common-lib-dbg
 	dh_compress

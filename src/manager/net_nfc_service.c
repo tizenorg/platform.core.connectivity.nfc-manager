@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_typedef.h"
@@ -21,7 +22,6 @@
 #include "net_nfc_service_private.h"
 #include "net_nfc_service_se_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_dbus_service_obj_private.h"
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
 #include "net_nfc_manager_util_private.h"
@@ -31,6 +31,7 @@
 
 #include "net_nfc_util_ndef_message.h"
 #include "net_nfc_util_ndef_record.h"
+#include "net_nfc_util_access_control_private.h"
 
 #include <pthread.h>
 #include <malloc.h>
@@ -69,21 +70,26 @@ void net_nfc_service_target_detected_cb(void *info, void *user_context)
 	if (info == NULL)
 		return;
 
-	net_nfc_server_set_tag_info(info);
-
 	if (req_msg->request_type == NET_NFC_MESSAGE_SERVICE_RESTART_POLLING_LOOP)
 	{
 		net_nfc_dispatcher_queue_push(req_msg);
 	}
 #ifdef BROADCAST_MESSAGE
-	net_nfc_request_target_detected_t *detail = (net_nfc_request_target_detected_t *)req_msg;
-	req_msg->request_type = NET_NFC_MESSAGE_SERVICE_SLAVE_TARGET_DETECTED;
-	net_nfc_dispatcher_queue_push(req_msg);
+	else
+	{
+		net_nfc_server_set_tag_info(info);
+
+		net_nfc_request_target_detected_t *detail = (net_nfc_request_target_detected_t *)req_msg;
+		req_msg->request_type = NET_NFC_MESSAGE_SERVICE_SLAVE_TARGET_DETECTED;
+		net_nfc_dispatcher_queue_push(req_msg);
+	}
 #else
 	else if (net_nfc_server_get_current_client_context(&client_context) == true &&
 		net_nfc_server_check_client_is_running(&client_context) == true)
 	{
 		net_nfc_request_target_detected_t *detail = (net_nfc_request_target_detected_t *)req_msg;
+
+		net_nfc_server_set_tag_info(info);
 
 		if (!_net_nfc_service_check_internal_ese_detected())
 		{
@@ -110,45 +116,49 @@ void net_nfc_service_target_detected_cb(void *info, void *user_context)
 #endif
 }
 
-void net_nfc_service_se_transaction_cb(void* info, void* user_context)
+void net_nfc_service_se_transaction_cb(void *info, void *user_context)
 {
 	int client_context = 0;
 	bool success;
 
-	net_nfc_request_se_event_t* se_event = (net_nfc_request_se_event_t *)info;
+	net_nfc_request_se_event_t *se_event = (net_nfc_request_se_event_t *)info;
 
 	DEBUG_SERVER_MSG("se event [%d]", se_event->request_type);
 
-	if(net_nfc_server_get_current_client_context(&client_context) == true)
+	if (1)
 	{
-		if(net_nfc_server_check_client_is_running(&client_context) == true)
+		net_nfc_app_util_launch_se_transaction_app(se_event->aid.buffer, se_event->aid.length, se_event->param.buffer, se_event->param.length);
+	}
+
+	if (net_nfc_server_get_current_client_context(&client_context) == true)
+	{
+		if (net_nfc_server_check_client_is_running(&client_context) == true)
 		{
-			net_nfc_response_se_event_t resp_msg  = {0,};
+			net_nfc_response_se_event_t resp_msg = { 0, };
 
 			resp_msg.aid.length = se_event->aid.length;
 			resp_msg.param.length = se_event->param.length;
 
-			if(resp_msg.aid.length > 0)
+			if (resp_msg.aid.length > 0)
 			{
-
-				if(resp_msg.param.length > 0)
+				if (resp_msg.param.length > 0)
 				{
-					success = _net_nfc_send_response_msg (se_event->request_type, (void *)&resp_msg,  sizeof (net_nfc_response_se_event_t),
-							(void *)(se_event->aid.buffer), resp_msg.aid.length,
-							(void *)(se_event->param.buffer), resp_msg.param.length, NULL);
+					success = _net_nfc_send_response_msg(se_event->request_type, (void *)&resp_msg, sizeof(net_nfc_response_se_event_t),
+						(void *)(se_event->aid.buffer), resp_msg.aid.length,
+						(void *)(se_event->param.buffer), resp_msg.param.length, NULL);
 				}
 				else
 				{
-					success = _net_nfc_send_response_msg (se_event->request_type, (void *)&resp_msg,  sizeof (net_nfc_response_se_event_t),
-								(void *)(se_event->aid.buffer), resp_msg.aid.length, NULL);
+					success = _net_nfc_send_response_msg(se_event->request_type, (void *)&resp_msg, sizeof(net_nfc_response_se_event_t),
+						(void *)(se_event->aid.buffer), resp_msg.aid.length, NULL);
 				}
 			}
 			else
 			{
-				success = _net_nfc_send_response_msg (se_event->request_type, (void *)&resp_msg,  sizeof (net_nfc_response_se_event_t), NULL);
+				success = _net_nfc_send_response_msg(se_event->request_type, (void *)&resp_msg, sizeof(net_nfc_response_se_event_t), NULL);
 			}
 
-			if(success == true)
+			if (success == true)
 			{
 				DEBUG_SERVER_MSG("sending response is ok");
 			}

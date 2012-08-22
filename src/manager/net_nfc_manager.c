@@ -15,9 +15,14 @@
   */
 
 #include <glib.h>
+#include <pthread.h>
 #include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-bindings.h>
+//#include <dbus/dbus-glib-bindings.h>
+#include <sys/utsname.h>
 
+
+#include "heynoti.h"
+#include "vconf.h"
 
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_debug_private.h"
@@ -25,21 +30,24 @@
 #include "net_nfc_typedef_private.h"
 #include "net_nfc_service_vconf_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_dbus_service_obj_private.h"
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
-
 #include "net_nfc_util_defines.h"
-#include "heynoti.h"
-#include "vconf.h"
+#include "net_nfc_server_dispatcher_private.h"
 
-GMainLoop* loop = NULL;
+GMainLoop *loop = NULL;
 
-bool __net_nfc_intialize_dbus_connection ();
 void __net_nfc_discovery_polling_cb(int signo);
+bool Check_Redwood();
+
 
 int main()
 {
+	int result = 0;
+	void *handle = NULL;
+	/*+REDWOOD+*/
+	bool ret = false;
+	/*-REDWOOD-*/
 
 	DEBUG_SERVER_MSG("start nfc manager");
 
@@ -50,40 +58,59 @@ int main()
 		g_thread_init(NULL);
 	}
 
-	dbus_g_thread_init();
-
 	g_type_init();
 
-	void* handle = NULL;
-
 	handle = net_nfc_controller_onload();
-
 	if(handle == NULL)
 	{
 		DEBUG_SERVER_MSG("load plugin library is failed");
 		return 0;
 	}
 
-	if(net_nfc_server_ipc_initialize() != true)
+	if (net_nfc_controller_support_nfc(&result) == true)
 	{
-		DEBUG_ERR_MSG("nfc server ipc initialization is failed \n");
-		return 0;
+		DEBUG_SERVER_MSG("NFC Support");
+
+		/*+REDWOOD+*/
+		ret = Check_Redwood();
+		if(ret == true)
+		{
+			DEBUG_ERR_MSG("NFC doesn't support");
+
+			vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF);
+			vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
+
+			net_nfc_controller_unload(handle);
+		}
+		else
+		{
+		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON);
 	}
-
-
-	DEBUG_SERVER_MSG("nfc server ipc init is ok \n");
-
-
-	if (__net_nfc_intialize_dbus_connection ())
-	{
-		DEBUG_SERVER_MSG("Registering DBUS is OK! \n");
+		/*-REDWOOD-*/
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("Registering DBUS is FAILED !!!\n");
+		DEBUG_ERR_MSG("NFC doesn't support");
+
+		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF);
+		vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
+
+		net_nfc_controller_unload(handle);
+
+		//return(0);
 	}
 
-	int result = 0;
+	if(net_nfc_server_ipc_initialize() != true)
+	{
+		DEBUG_ERR_MSG("nfc server ipc initialization is failed \n");
+
+		net_nfc_controller_unload(handle);
+
+		return 0;
+	}
+
+	DEBUG_SERVER_MSG("nfc server ipc init is ok \n");
+
 	int fd = 0;
 
 	fd = heynoti_init();
@@ -104,6 +131,8 @@ int main()
 	if (result == -1)
 		return 0;
 
+	net_nfc_service_vconf_register_notify_listener();
+
 	loop = g_main_new(TRUE);
 	g_main_loop_run(loop);
 
@@ -116,63 +145,66 @@ int main()
 
 void __net_nfc_discovery_polling_cb(int signo)
 {
-	int status;
+	int state;
 	net_nfc_error_e result;
+
+	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
+	if (result != 0)
+	{
+		DEBUG_MSG("VCONFKEY_NFC_STATE is not exist: %d ", result);
+	}
 
 	DEBUG_MSG("__net_nfc_discovery_polling_cb[Enter]");
 
-	if(net_nfc_controller_confiure_discovery(NET_NFC_DISCOVERY_MODE_CONFIG, NET_NFC_ALL_ENABLE, &result) == true)
+	if(state == TRUE)
 	{
-		DEBUG_SERVER_MSG("someone wake-up the nfc-manager daemon. and it succeeds to restart the polling. ");
-	}
-	else
-	{
-		if (vconf_set_int(NET_NFC_VCONF_KEY_PROGRESS, result) != 0)
+		net_nfc_request_msg_t *req_msg = NULL;
+
+		_net_nfc_util_alloc_mem(req_msg, sizeof(net_nfc_request_msg_t));
+
+		if (req_msg == NULL)
 		{
-			DEBUG_ERR_MSG("vconf_set_int(NET_NFC_VCONF_KEY_PROGRESS, ERROR) != 0");
+			DEBUG_MSG("_net_nfc_util_alloc_mem[NULL]");
+			return false;
 		}
-		exit(result);
+
+		req_msg->length = sizeof(net_nfc_request_msg_t);
+		req_msg->request_type = NET_NFC_MESSAGE_SERVICE_RESTART_POLLING_LOOP;
+
+		net_nfc_dispatcher_queue_push(req_msg);
+	}
+ 	else
+	{
+		DEBUG_SERVER_MSG("Don't need to wake up. NFC is OFF!!");
 	}
 
 	DEBUG_MSG("__net_nfc_discovery_polling_cb[Out]");
 }
 
-bool __net_nfc_intialize_dbus_connection ()
+bool Check_Redwood()
 {
+	struct utsname hwinfo;
 
-	GError *error = NULL;
-	DBusGProxy *proxy;
-	GObject *object = NULL;
-	guint32 name;
-	DBusGConnection *connection;
+	int ret = uname(&hwinfo);
+	DEBUG_MSG("uname returned %d",ret);
+	DEBUG_MSG("sysname::%s",hwinfo.sysname);
+	DEBUG_MSG("release::%s",hwinfo.release);
+	DEBUG_MSG("version::%s",hwinfo.version);
+	DEBUG_MSG("machine::%s",hwinfo.machine);
+	DEBUG_MSG("nodename::%s",hwinfo.nodename);
 
-	connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
-	if (connection == NULL) {
-		DEBUG_ERR_MSG ("DBUS: getting dbus connection is failed \n");
-		DEBUG_SERVER_MSG("DBUS: %s", error->message);
-		g_error_free (error);
+	if(strstr(hwinfo.nodename,"REDWOOD"))
+	{
+		DEBUG_MSG("REDWOOD harware");
+		return true;
+
+	}
+	else
+	{
+		DEBUG_MSG("except REDWOOD");
 		return false;
 	}
 
-	object = g_object_new (DBUS_SERVICE_TYPE, NULL);
-
-	dbus_g_connection_register_g_object (connection, DBUS_SERVICE_PATH, object);
-
-	proxy = dbus_g_proxy_new_for_name (connection, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS);
-
-	/* Make sure getting name is correct version or not */
-	if (!org_freedesktop_DBus_request_name (proxy, DBUS_SERVICE_NAME, 0, &name, &error))
-	{
-		DEBUG_ERR_MSG ("DBUS: getting dbus proxy is failed \n");
-		DEBUG_SERVER_MSG("DBUS: %s", error->message);
-		g_error_free (error);
-		return false;
-	}
-
-	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != name)
-	{
-		DEBUG_SERVER_MSG ("Requested name is: %d", name);
-	}
-	return true;
 }
+
 

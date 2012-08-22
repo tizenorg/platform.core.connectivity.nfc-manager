@@ -2,7 +2,7 @@ Source: nfc-manager
 Section: libs
 Priority: extra
 Maintainer: Sangsoo Lee <constant.lee@samsung.com>, Sungjae Lim <sungjae.lim@samsung.com>, Sechang Sohn <sc.sohn@samsung.com>
-Build-Depends: debhelper (>= 5), libaul-1-dev, libglib2.0-dev, libvconf-dev, libsecurity-server-client-dev, libbluetooth-frwk-dev,libdbus-glib-1-dev, dlog-dev, libecore-dev, libslp-tapi-dev, libappsvc-dev, libcurl-dev, libheynoti-dev, libsvi-dev
+Build-Depends: debhelper (>= 5), libaul-1-dev, libglib2.0-dev, libvconf-dev, libsecurity-server-client-dev, libbluetooth-frwk-dev,libdbus-glib-1-dev, dlog-dev, libecore-dev, libslp-tapi-dev, libappsvc-dev, libcurl-dev, libheynoti-dev, libsvi-dev, libssl-dev, smartcard-service-dev, smartcard-service-common-dev, libslp-pm-dev
 Standards-Version: 0.0.1
 
 Package: libnfc-common-lib-0

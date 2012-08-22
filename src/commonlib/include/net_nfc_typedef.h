@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 /**
  NFC Manager
  NFC Manager controls the nfc device with high level APIs such as SmartPoster and Connection handover.
@@ -73,6 +74,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -206,6 +208,13 @@ typedef enum
 	NET_NFC_GET_SERVER_STATE,
 
 	NET_NFC_MESSAGE_SIM_TEST,
+
+	NET_NFC_MESSAGE_INIT,/*31*/
+	NET_NFC_MESSAGE_DEINIT,
+
+	NET_NFC_MESSAGE_PRBS_TEST,
+
+	NET_NFC_MESSAGE_GET_FIRMWARE_VERSION,
 
 } net_nfc_message_e;
 
@@ -486,6 +495,23 @@ typedef enum
 	NET_NFC_SE_TYPE_UICC = 0x02,/**< UICC */
 	NET_NFC_SE_TYPE_SDCARD = 0x03, /* SDCard type is not currently supported */
 } net_nfc_se_type_e;
+
+typedef enum
+{
+	NET_NFC_SIGN_TYPE_NO_SIGN = 0,
+	NET_NFC_SIGN_TYPE_PKCS_1,
+	NET_NFC_SIGN_TYPE_PKCS_1_V_1_5,
+	NET_NFC_SIGN_TYPE_DSA,
+	NET_NFC_SIGN_TYPE_ECDSA,
+	NET_NFC_MAX_SIGN_TYPE,
+} net_nfc_sign_type_t;
+
+typedef enum
+{
+	NET_NFC_CERT_FORMAT_X_509 = 0,
+	NET_NFC_CERT_FORMAT_X9_86,
+	NET_NFC_MAX_CERT_FORMAT,
+} net_nfc_cert_format_t;
 
 #ifdef __cplusplus
 }

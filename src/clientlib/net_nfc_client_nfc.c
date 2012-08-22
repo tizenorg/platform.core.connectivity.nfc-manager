@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_util_private.h"
@@ -23,12 +24,10 @@
 #include "net_nfc_exchanger_private.h"
 #include "net_nfc_client_util_private.h"
 #include "net_nfc_client_nfc_private.h"
-#include "../agent/include/dbus_agent_binding_private.h"
 
 #include <pthread.h>
 #include <glib.h>
 #include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-bindings.h>
 
 #include "vconf.h"
 
@@ -45,6 +44,28 @@
 static client_context_t g_client_context = {NULL, NET_NFC_OK, PTHREAD_MUTEX_INITIALIZER, NET_NFC_ALL_ENABLE, NULL, false};
 
 static net_nfc_set_activation_completed_cb g_net_nfc_set_activation_completed_cb = NULL;
+
+void net_nfc_set_state_response_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data );
+
+
+static pthread_t g_set_thread = (pthread_t)0;
+static pthread_t g_set_send_thread = (pthread_t)0;
+
+static int gv_state = 0;
+static bool gv_set_state_lock = false;
+
+static pthread_mutex_t g_client_lock = PTHREAD_MUTEX_INITIALIZER;
+
+typedef struct _client_context_s
+{
+	pthread_cond_t *client_cond;
+	void *user_context;
+	int result;
+} client_context_s;
+
+
+
+
 
 static void _net_nfc_reset_client_context()
 {
@@ -176,125 +197,63 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_response_callback (void)
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_launch_popup_state(int enable)
 {
-	net_nfc_error_e result = NET_NFC_OK;
+	net_nfc_error_e ret;
+	net_nfc_request_set_launch_state_t request = {0,};
 
-	pthread_mutex_lock(&g_client_context.g_client_lock);
+	request.length = sizeof(net_nfc_request_set_launch_state_t);
+	request.request_type = NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE;
+	request.set_launch_popup = enable;
 
-	if (vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, enable ? 0 : 1) != 0)
-	{
-		result = NET_NFC_UNKNOWN_ERROR;
-	}
+	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
 
-	pthread_mutex_unlock(&g_client_context.g_client_lock);
-
-	return result;
+	return ret;
 }
 
 NET_NFC_EXPORT_API bool net_nfc_get_launch_popup_state(void)
 {
-	int disable = 0;
+	bool enable = 0;
 
 	/* check state of launch popup */
-	if (vconf_get_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, &disable) == 0 && disable == TRUE)
+	if (vconf_get_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, &enable) == 0 && enable == TRUE)
 	{
-		DEBUG_MSG("skip launch popup");
-		return false;
+		return true;
 	}
 
-	return true;
+	DEBUG_MSG("skip launch popup");
+
+	return false;
 }
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_set_state(int state, net_nfc_set_activation_completed_cb callback)
 {
 	net_nfc_error_e ret = NET_NFC_UNKNOWN_ERROR;;
-	uint32_t status;
-	GError *error = NULL;
-	DBusGConnection *connection = NULL;
-	DBusGProxy *proxy = NULL;
 
-	g_net_nfc_set_activation_completed_cb = callback;
+	DEBUG_MSG("net_nfc_set_state[Enter]");
 
 	if(!g_thread_supported())
 	{
 		g_thread_init(NULL);
 	}
 
-	dbus_g_thread_init();
 	g_type_init();
 
-	connection = dbus_g_bus_get(DBUS_BUS_SYSTEM, &error);
-	if (connection != NULL)
+	gv_state = state;
+
+	if (gv_state == FALSE)/*Deinit*/
 	{
-		proxy = dbus_g_proxy_new_for_name(connection, "com.samsung.slp.nfc.agent", "/com/samsung/slp/nfc/agent", "com.samsung.slp.nfc.agent");
-		if (proxy != NULL)
-		{
-			if (state == FALSE)
-			{
-				if (!com_samsung_slp_nfc_agent_terminate(proxy, &status, &error))
-				{
-					DEBUG_ERR_MSG("Termination is failed: %d", status);
-					DEBUG_ERR_MSG("error : %s", error->message);
-					g_error_free(error);
-				}
-				else
-				{
-					DEBUG_CLIENT_MSG("terminate is completed");
+		ret = net_nfc_send_deinit(NULL);
 
-					if (vconf_set_bool(VCONFKEY_NFC_STATE, FALSE) != 0)
-					{
-						DEBUG_ERR_MSG("vconf_set_bool failed");
-					}
-
-					ret = NET_NFC_OK;
-				}
-			}
-			else
-			{
-				if (!com_samsung_slp_nfc_agent_launch(proxy, &status, &error))
-				{
-					DEBUG_ERR_MSG("[%s(): %d] faile to launch nfc-manager\n", __FUNCTION__, __LINE__);
-					DEBUG_ERR_MSG("[%s(): %d] error : %s\n", __FUNCTION__, __LINE__, error->message);
-					g_error_free(error);
-				}
-				else
-				{
-					DEBUG_CLIENT_MSG("[%s(): %d] launch is completed\n", __FUNCTION__, __LINE__);
-
-					if (vconf_set_bool(VCONFKEY_NFC_STATE, TRUE) != 0)
-					{
-						DEBUG_ERR_MSG("vconf_set_bool failed");
-					}
-
-					if (vconf_set_int(NET_NFC_VCONF_KEY_PROGRESS, 0) != 0)
-					{
-						DEBUG_ERR_MSG("vconf_set_bool failed");
-					}
-
-					ret = NET_NFC_OK;
-				}
-			}
-
-			g_object_unref(proxy);
-		}
-		else
-		{
-			DEBUG_ERR_MSG("dbus_g_proxy_new_for_name returns NULL");
-		}
+		DEBUG_CLIENT_MSG("Send the deinit msg!!");
 	}
-	else
+	else/*INIT*/
 	{
-		DEBUG_ERR_MSG("dbus_g_bus_get returns NULL [%s]", error->message);
-		g_error_free(error);
-	}
-	/* todo it will be move to the point of  init response */
-	if (g_net_nfc_set_activation_completed_cb)
-	{
-		DEBUG_ERR_MSG("g_net_nfc_set_activation_completed_cb ret[%d]",ret);
+		ret = net_nfc_send_init(NULL);
 
-		g_net_nfc_set_activation_completed_cb(ret,NULL);
-
-		g_net_nfc_set_activation_completed_cb = NULL;
+		DEBUG_CLIENT_MSG("Send the init msg!!");
 	}
+
+	DEBUG_CLIENT_MSG("Send the init/deinit msg!![%d]" , ret);
+
 	return ret;
 }
 
@@ -390,6 +349,34 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_sim_test(void)
 	return ret;
 }
 
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_prbs_test(int tech , int rate)
+{
+	net_nfc_error_e ret;
+	net_nfc_request_test_t request = {0,};
+
+	request.length = sizeof(net_nfc_request_test_t);
+	request.request_type = NET_NFC_MESSAGE_PRBS_TEST;/*TEST MODE*/
+	request.rate = rate;
+	request.tech = tech;
+
+	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+
+	return ret;
+}
+
+NET_NFC_EXPORT_API net_nfc_error_e net_nfc_get_firmware_version(void)
+{
+	net_nfc_error_e ret;
+	net_nfc_request_msg_t request = { 0,};
+
+	request.length = sizeof(net_nfc_request_msg_t);
+	request.request_type = NET_NFC_MESSAGE_GET_FIRMWARE_VERSION;
+
+	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&request, NULL);
+
+	return ret;
+}
+
 client_context_t* net_nfc_get_client_context()
 {
 	return &g_client_context;
@@ -412,4 +399,34 @@ bool net_nfc_tag_is_connected()
 		return false;
 	}
 }
+
+net_nfc_error_e net_nfc_send_init(void* context)
+{
+	net_nfc_error_e ret;
+	net_nfc_request_msg_t req_msg = {0,};
+
+
+	req_msg.length = sizeof(net_nfc_request_msg_t);
+	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_INIT;
+	req_msg.user_param = context;
+
+	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&req_msg, NULL);
+
+	return ret;
+}
+
+net_nfc_error_e net_nfc_send_deinit(void* context)
+{
+	net_nfc_error_e ret;
+	net_nfc_request_msg_t req_msg = {0,};
+
+	req_msg.length = sizeof(net_nfc_request_msg_t);
+	req_msg.request_type = NET_NFC_MESSAGE_SERVICE_DEINIT;
+	req_msg.user_param = context;
+
+	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)&req_msg, NULL);
+
+	return ret;
+}
+
 

@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_ndef_record.h"
 #include "net_nfc_ndef_message.h"
 #include "net_nfc_data.h"

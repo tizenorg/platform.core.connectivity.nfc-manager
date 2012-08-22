@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_ndef_message_handover.h"
 
 #include "net_nfc_typedef_private.h"

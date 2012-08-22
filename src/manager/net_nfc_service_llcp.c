@@ -20,7 +20,6 @@
 #include "net_nfc_debug_private.h"
 #include "net_nfc_service_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_dbus_service_obj_private.h"
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
 #include "net_nfc_manager_util_private.h"
@@ -108,10 +107,6 @@ bool net_nfc_service_llcp_process(net_nfc_target_handle_s* handle, int devType, 
 			return false;
 		}
 	}
-
-#ifdef BROADCAST_MESSAGE
-	net_nfc_server_set_server_state(	NET_NFC_LLCP_CONNECTED);
-#endif
 
 	DEBUG_SERVER_MSG("check LLCP");
 
@@ -308,6 +303,7 @@ static bool _net_nfc_service_llcp_state_process(net_nfc_request_msg_t *msg)
 	{
 	case NET_NFC_STATE_EXCHANGER_SERVER :
 		DEBUG_SERVER_MSG("exchanger server service");
+		net_nfc_server_set_server_state(NET_NFC_SNEP_SERVER_CONNECTED);
 		result = _net_nfc_service_llcp_snep_server(state, &error);
 		break;
 
@@ -319,6 +315,7 @@ static bool _net_nfc_service_llcp_state_process(net_nfc_request_msg_t *msg)
 
 	case NET_NFC_STATE_EXCHANGER_SERVER_NPP :
 		DEBUG_SERVER_MSG("exchanger sesrver npp");
+		net_nfc_server_set_server_state(NET_NFC_SNEP_SERVER_CONNECTED);
 		result = _net_nfc_service_llcp_npp_server(state, &error);
 		break;
 
@@ -350,8 +347,6 @@ bool net_nfc_service_llcp_process_accept(net_nfc_request_msg_t *msg)
 	{
 		return false;
 	}
-
-	net_nfc_server_set_server_state(NET_NFC_SNEP_SERVER_CONNECTED);
 
 	if (msg->request_type == NET_NFC_MESSAGE_SERVICE_LLCP_ACCEPT)
 	{
@@ -1150,6 +1145,10 @@ static bool _net_nfc_service_llcp_snep_server(net_nfc_llcp_state_t * state, net_
 
 	if (need_clean_up == true)
 	{
+		DEBUG_SERVER_MSG("socket close :: snep server");
+
+		net_nfc_server_unset_server_state(NET_NFC_SNEP_SERVER_CONNECTED);
+
 		net_nfc_controller_llcp_socket_close (state->socket, result);
 		net_nfc_service_llcp_remove_state (state);
 		_net_nfc_manager_util_free_mem (state);
@@ -1573,6 +1572,10 @@ static bool _net_nfc_service_llcp_npp_server(net_nfc_llcp_state_t * state, net_n
 
 	if (need_clean_up == true)
 	{
+		DEBUG_SERVER_MSG("socket close :: NPP server");
+
+		net_nfc_server_unset_server_state(NET_NFC_NPP_SERVER_CONNECTED);
+
 		net_nfc_controller_llcp_socket_close (state->socket, result);
 		net_nfc_service_llcp_remove_state (state);
 		_net_nfc_manager_util_free_mem (state);
@@ -1599,7 +1602,7 @@ static bool _net_nfc_service_llcp_client(net_nfc_llcp_state_t * state, net_nfc_e
 
 	*result = NET_NFC_OK;
 
-	if(((net_nfc_server_get_server_state() == NET_NFC_SNEP_CLIENT_CONNECTED) ||  (net_nfc_server_get_server_state() == NET_NFC_NPP_CLIENT_CONNECTED))
+	if(((net_nfc_server_get_server_state() & NET_NFC_SNEP_CLIENT_CONNECTED) ||  (net_nfc_server_get_server_state() & NET_NFC_NPP_CLIENT_CONNECTED))
 		&& state->step == NET_NFC_LLCP_STEP_01)
 	{
 		state->socket = current_llcp_client_state.socket;
@@ -1848,6 +1851,7 @@ static bool _net_nfc_service_llcp_client(net_nfc_llcp_state_t * state, net_nfc_e
 				req_msg.result = NET_NFC_OK;
 
 				_net_nfc_send_response_msg (NET_NFC_MESSAGE_P2P_SEND, &req_msg, sizeof (net_nfc_response_p2p_send_t), NULL);
+
 				break;
 			}
 
@@ -1871,6 +1875,8 @@ static bool _net_nfc_service_llcp_client(net_nfc_llcp_state_t * state, net_nfc_e
 						req_msg.result = NET_NFC_OK;
 
 						_net_nfc_send_response_msg (NET_NFC_MESSAGE_P2P_SEND, &req_msg, sizeof (net_nfc_response_p2p_send_t), NULL);
+
+
 					}
 					else if(code == SNEP_RESP_CONT)
 					{
@@ -2051,6 +2057,8 @@ static bool _net_nfc_service_llcp_client(net_nfc_llcp_state_t * state, net_nfc_e
 				req_msg.result = NET_NFC_OK;
 
 				_net_nfc_send_response_msg (NET_NFC_MESSAGE_P2P_SEND, &req_msg, sizeof (net_nfc_response_p2p_send_t), NULL);
+
+
 			}
 
 			DEBUG_SERVER_MSG("sending last fragment msg is ok");
@@ -2078,14 +2086,22 @@ static bool _net_nfc_service_llcp_client(net_nfc_llcp_state_t * state, net_nfc_e
 
 		net_nfc_util_play_target_detect_sound();
 		_net_nfc_send_response_msg (NET_NFC_MESSAGE_P2P_SEND, &req_msg, sizeof (net_nfc_response_p2p_send_t), NULL);
-		state->step = 0;
+
+		net_nfc_server_unset_server_state(NET_NFC_SNEP_CLIENT_CONNECTED|NET_NFC_NPP_CLIENT_CONNECTED);
+
+		need_clean_up = true;
 	}
 
 	if (need_clean_up == true )
 	{
+		DEBUG_SERVER_MSG("socket close :: LLCP client");
+
 		net_nfc_controller_llcp_socket_close (state->socket, result);
 		net_nfc_service_llcp_remove_state (state);
 		_net_nfc_manager_util_free_mem (state);
+
+		net_nfc_server_unset_server_state(NET_NFC_SNEP_CLIENT_CONNECTED|NET_NFC_NPP_CLIENT_CONNECTED);
+
 	}
 
 	if (*result != NET_NFC_OK && *result != NET_NFC_BUSY)

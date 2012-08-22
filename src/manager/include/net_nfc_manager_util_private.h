@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_MANAGER_UTIL_PRIVATE__
 #define __NET_NFC_MANAGER_UTIL_PRIVATE__
 

@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_NDEF_RECORD_H__
 #define __NET_NFC_NDEF_RECORD_H__
 

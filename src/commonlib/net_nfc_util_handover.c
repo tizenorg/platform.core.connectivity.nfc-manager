@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include <glib.h>
 
 #include "net_nfc_typedef_private.h"

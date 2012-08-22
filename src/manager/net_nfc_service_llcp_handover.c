@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_debug_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_util_ndef_message.h"
@@ -52,6 +53,7 @@ net_nfc_error_e net_nfc_service_llcp_handover_process_carrier_config(net_nfc_car
 int net_nfc_service_llcp_handover_process_bt_config(net_nfc_handover_process_config_context_t *context);
 
 int net_nfc_service_llcp_handover_return_to_step(net_nfc_handover_context_t *context);
+net_nfc_error_e net_nfc_service_llcp_handover_bt_change_data_order(net_nfc_carrier_config_s *config);
 
 net_nfc_error_e net_nfc_service_llcp_handover_send_request_msg(net_nfc_request_connection_handover_t *msg)
 {
@@ -1428,7 +1430,7 @@ int net_nfc_service_llcp_handover_append_bt_carrier_config(net_nfc_handover_crea
 					/* get oob data */
 					bluetooth_oob_read_local_data(&oob);
 
-					if (oob.hash_len > 0)
+					if (oob.hash_len == 16)
 					{
 						DEBUG_SERVER_MSG("oob.hash_len [%d]", oob.hash_len);
 
@@ -1438,7 +1440,7 @@ int net_nfc_service_llcp_handover_append_bt_carrier_config(net_nfc_handover_crea
 						}
 					}
 
-					if (oob.randomizer_len > 0)
+					if (oob.randomizer_len == 16)
 					{
 						DEBUG_SERVER_MSG("oob.randomizer_len [%d]", oob.randomizer_len);
 
@@ -1447,6 +1449,8 @@ int net_nfc_service_llcp_handover_append_bt_carrier_config(net_nfc_handover_crea
 							DEBUG_ERR_MSG("net_nfc_util_add_carrier_config_property failed [%d]", result);
 						}
 					}
+
+					net_nfc_service_llcp_handover_bt_change_data_order(config);
 
 					if ((result = net_nfc_util_create_ndef_record_with_carrier_config(&record, config)) == NET_NFC_OK)
 					{
@@ -1709,6 +1713,7 @@ net_nfc_error_e net_nfc_service_llcp_handover_process_carrier_config(net_nfc_car
 		{
 		case NET_NFC_CONN_HANDOVER_CARRIER_BT :
 			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
+			net_nfc_service_llcp_handover_bt_change_data_order(context->config);
 			g_idle_add((GSourceFunc)net_nfc_service_llcp_handover_process_bt_config, (gpointer)context);
 			break;
 
@@ -1786,7 +1791,7 @@ int net_nfc_service_llcp_handover_process_bt_config(net_nfc_handover_process_con
 			DEBUG_MSG("STEP [2]");
 
 			net_nfc_util_get_carrier_config_property(context->config, NET_NFC_BT_ATTRIBUTE_ADDRESS, (uint16_t *)&temp.length, &temp.buffer);
-			if (temp.length > 0)
+			if (temp.length == 6)
 			{
 				memcpy(address.addr, temp.buffer, MIN(sizeof(address.addr), temp.length));
 
@@ -1837,7 +1842,7 @@ int net_nfc_service_llcp_handover_process_bt_config(net_nfc_handover_process_con
 			}
 			else
 			{
-				DEBUG_ERR_MSG("bluetooth address is invalid");
+				DEBUG_ERR_MSG("bluetooth address is invalid. [%d] bytes", temp.length);
 
 				context->step = NET_NFC_LLCP_STEP_RETURN;
 				context->result = NET_NFC_OPERATION_FAIL;
@@ -1855,12 +1860,22 @@ int net_nfc_service_llcp_handover_process_bt_config(net_nfc_handover_process_con
 			context->step++;
 
 			net_nfc_util_get_carrier_config_property(context->config, NET_NFC_BT_ATTRIBUTE_ADDRESS, (uint16_t *)&data.length, &data.buffer);
+			if (data.length == 6)
+			{
+				/* send handover success message to client */
+				_net_nfc_service_llcp_handover_send_response(NET_NFC_OK, NET_NFC_CONN_HANDOVER_CARRIER_BT, &data);
 
-			/* send handover success message to client */
-			_net_nfc_service_llcp_handover_send_response(NET_NFC_OK, NET_NFC_CONN_HANDOVER_CARRIER_BT, &data);
+				context->step = NET_NFC_LLCP_STEP_RETURN;
+				context->result = NET_NFC_OK;
+			}
+			else
+			{
+				DEBUG_ERR_MSG("bluetooth address is invalid. [%d] bytes", data.length);
 
-			context->step = NET_NFC_LLCP_STEP_RETURN;
-			context->result = NET_NFC_OK;
+				context->step = NET_NFC_LLCP_STEP_RETURN;
+				context->result = NET_NFC_OPERATION_FAIL;
+			}
+
 			g_idle_add((GSourceFunc)net_nfc_service_llcp_handover_process_bt_config, (gpointer)context);
 		}
 		break;
@@ -1902,17 +1917,83 @@ net_nfc_error_e net_nfc_service_llcp_handover_get_oob_data(net_nfc_carrier_confi
 	{
 		if ((result = net_nfc_util_get_carrier_config_property(config, NET_NFC_BT_ATTRIBUTE_OOB_HASH_R, (uint16_t *)&randomizer.length, &randomizer.buffer)) == NET_NFC_OK)
 		{
-			if (hash.length > 0)
+			if (hash.length == 16)
 			{
+				DEBUG_MSG("hash.length == 16");
+
 				oob->hash_len = MIN(sizeof(oob->hash), hash.length);
 				memcpy(oob->hash, hash.buffer, oob->hash_len);
 			}
-
-			if (hash.length > 0)
+			else
 			{
+				DEBUG_ERR_MSG("hash.length error : [%d] bytes", hash.length);
+			}
+
+			if (randomizer.length == 16)
+			{
+				DEBUG_MSG("randomizer.length == 16");
+
 				oob->randomizer_len = MIN(sizeof(oob->randomizer), randomizer.length);
 				memcpy(oob->randomizer, randomizer.buffer, oob->randomizer_len);
 			}
+			else
+			{
+				DEBUG_ERR_MSG("randomizer.length error : [%d] bytes", randomizer.length);
+			}
+		}
+	}
+
+	LOGD("[%s:%d] END", __func__, __LINE__);
+
+	return result;
+}
+
+net_nfc_error_e net_nfc_service_llcp_handover_bt_change_data_order(net_nfc_carrier_config_s *config)
+{
+	uint8_t *buffer = NULL;
+	uint32_t len = 0;
+	net_nfc_error_e result = NET_NFC_UNKNOWN_ERROR;
+
+	LOGD("[%s:%d] START", __func__, __LINE__);
+
+	if (config == NULL)
+	{
+		return NET_NFC_NULL_PARAMETER;
+	}
+
+	if ((result = net_nfc_util_get_carrier_config_property(config, NET_NFC_BT_ATTRIBUTE_ADDRESS, &len, (uint16_t *)&buffer)) == NET_NFC_OK)
+	{
+		if (len == 6)
+		{
+			NET_NFC_REVERSE_ORDER_6_BYTES(buffer);
+		}
+		else
+		{
+			DEBUG_ERR_MSG("NET_NFC_BT_ATTRIBUTE_ADDRESS len error : [%d] bytes", len);
+		}
+	}
+
+	if ((result = net_nfc_util_get_carrier_config_property(config, NET_NFC_BT_ATTRIBUTE_OOB_HASH_C, &len, (uint16_t *)&buffer)) == NET_NFC_OK)
+	{
+		if (len == 16)
+		{
+			NET_NFC_REVERSE_ORDER_16_BYTES(buffer);
+		}
+		else
+		{
+			DEBUG_ERR_MSG("NET_NFC_BT_ATTRIBUTE_OOB_HASH_C len error : [%d] bytes", len);
+		}
+	}
+
+	if ((result = net_nfc_util_get_carrier_config_property(config, NET_NFC_BT_ATTRIBUTE_OOB_HASH_R, &len, (uint16_t *)&buffer)) == NET_NFC_OK)
+	{
+		if (len == 16)
+		{
+			NET_NFC_REVERSE_ORDER_16_BYTES(buffer);
+		}
+		else
+		{
+			DEBUG_ERR_MSG("NET_NFC_BT_ATTRIBUTE_OOB_HASH_R error : [%d] bytes", len);
 		}
 	}
 

@@ -104,6 +104,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 	net_nfc_target_info_s *target_info = NULL;
 	uint32_t length = 0;
 	data_s *data = (data_s *)rawdata;
+	uint8_t *send_buffer;
 
 	DEBUG_CLIENT_MSG("send reqeust :: transceive = [%d]", handle);
 
@@ -125,12 +126,80 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 	/* fill trans information struct */
 	target_info = client_context_tmp->target_info;
 
-	length = sizeof(net_nfc_request_transceive_t) + data->length;
-
-	_net_nfc_client_util_alloc_mem(request, length);
-	if (request == NULL)
+	switch(target_info->devType)
 	{
-		return NET_NFC_ALLOC_FAIL;
+		case NET_NFC_MIFARE_MINI_PICC :
+		case NET_NFC_MIFARE_1K_PICC :
+		case NET_NFC_MIFARE_4K_PICC :
+		case NET_NFC_MIFARE_ULTRA_PICC :
+		{
+			_net_nfc_client_util_alloc_mem(send_buffer, data->length + 2);
+			if (send_buffer == NULL)
+			{
+				return NET_NFC_ALLOC_FAIL;
+			}
+
+			length = sizeof(net_nfc_request_transceive_t) + data->length + 2;
+
+			_net_nfc_client_util_alloc_mem(request, length);
+			if (request == NULL)
+			{
+				return NET_NFC_ALLOC_FAIL;
+			}
+
+			memcpy(send_buffer, data->buffer, data->length);
+			net_nfc_util_compute_CRC(CRC_A, send_buffer, data->length + 2);
+
+			memcpy(&request->info.trans_data.buffer, send_buffer, data->length + 2);
+
+			request->info.trans_data.length = data->length + 2;
+		}
+		break;
+
+		case NET_NFC_JEWEL_PICC :
+		{
+			_net_nfc_client_util_alloc_mem(send_buffer, 9);
+
+			length = sizeof(net_nfc_request_transceive_t) + 9;
+
+			_net_nfc_client_util_alloc_mem(request, length);
+			if (request == NULL)
+			{
+				return NET_NFC_ALLOC_FAIL;
+			}
+
+			if(data->length > 9)
+			{
+				return NET_NFC_INVALID_PARAM;
+			}
+
+			memcpy(send_buffer, data->buffer, data->length);
+			net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
+
+			memcpy(&request->info.trans_data.buffer, send_buffer, 9);
+
+			request->info.trans_data.length = 9;
+
+			_net_nfc_client_util_free_mem(send_buffer);
+
+		}
+		break;
+
+		default :
+		{
+			length = sizeof(net_nfc_request_transceive_t) + data->length;
+
+			_net_nfc_client_util_alloc_mem(request, length);
+			if (request == NULL)
+			{
+				return NET_NFC_ALLOC_FAIL;
+			}
+
+			memcpy(&request->info.trans_data.buffer, data->buffer, data->length);
+
+			request->info.trans_data.length = data->length;
+		}
+		break;
 	}
 
 	/* fill request message */
@@ -139,9 +208,6 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 	request->handle = (net_nfc_target_handle_s *)handle;
 	request->trans_param = trans_param;
 	request->info.dev_type = (uint32_t)target_info->devType;
-
-	request->info.trans_data.length = data->length;
-	memcpy(&request->info.trans_data.buffer, data->buffer, request->info.trans_data.length);
 
 	ret = _net_nfc_client_send_reqeust((net_nfc_request_msg_t *)request, NULL);
 

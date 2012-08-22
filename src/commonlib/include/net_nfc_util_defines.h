@@ -30,9 +30,7 @@
 #define BLUETOOTH_ADDRESS_LENGTH 6
 #define HIDDEN_BT_ADDR_FILE "/opt/etc/.bd_addr"
 
-#define NET_NFC_VCONF_KEY_PROGRESS "db/nfc/progress"
-
 /* define vconf key */
-#define NET_NFC_DISABLE_LAUNCH_POPUP_KEY "memory/nfc/popup_disabled"
+#define NET_NFC_DISABLE_LAUNCH_POPUP_KEY "memory/private/nfc-manager/popup_disabled"//"memory/nfc/popup_disabled"
 
 #endif

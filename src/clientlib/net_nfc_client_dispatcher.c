@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include <stdio.h>
 #include <glib.h>
 
@@ -138,7 +139,7 @@ void net_nfc_client_call_dispatcher_in_g_main_loop(net_nfc_response_cb client_cb
 
 void net_nfc_client_call_dispatcher_in_current_context(net_nfc_response_cb client_cb, net_nfc_response_msg_t* msg)
 {
-	DEBUG_CLIENT_MSG("put message to g main loop");
+	DEBUG_CLIENT_MSG("invoke callback in current thread");
 
 	client_dispatcher_param_t* param = calloc(1, sizeof(client_dispatcher_param_t));
 
@@ -299,6 +300,31 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t* param)
 		}
 		break;
 
+		case NET_NFC_MESSAGE_PRBS_TEST:
+		{
+			if(client_cb != NULL)
+				client_cb(msg->response_type, ((net_nfc_response_get_server_state_t *)msg->detail_message)->result, NULL, client_context->register_user_param, (void*)((net_nfc_response_get_server_state_t *)msg->detail_message)->state);
+		}
+		break;
+
+	case NET_NFC_MESSAGE_GET_FIRMWARE_VERSION :
+		{
+			data_s *version = &(((net_nfc_response_get_firmware_version_t *)msg->detail_message)->data);
+
+			if (version->length > 0)
+			{
+				if (client_cb != NULL)
+					client_cb(msg->response_type, ((net_nfc_response_send_apdu_t *)msg->detail_message)->result, version, client_context->register_user_param, ((net_nfc_response_send_apdu_t *)(msg->detail_message))->trans_param);
+			}
+			else
+			{
+				if (client_cb != NULL)
+					client_cb(msg->response_type, ((net_nfc_response_send_apdu_t *)msg->detail_message)->result, NULL, client_context->register_user_param, ((net_nfc_response_send_apdu_t *)(msg->detail_message))->trans_param);
+			}
+
+		}
+		break;
+
 		case NET_NFC_MESSAGE_WRITE_NDEF:
 		{
 			if(client_cb != NULL)
@@ -415,7 +441,7 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t* param)
 		{
 			net_nfc_response_get_current_tag_info_t* detected = (net_nfc_response_get_current_tag_info_t *)msg->detail_message;
 
-			if(detected->result == NET_NFC_OK)
+			if(detected->result != NET_NFC_NOT_CONNECTED)
 			{
 				net_nfc_event_filter_e current_filter = net_nfc_get_tag_filter();
 				net_nfc_event_filter_e converted = NET_NFC_ALL_ENABLE;
@@ -856,6 +882,32 @@ static bool net_nfc_client_dispatch_response(client_dispatcher_param_t* param)
 				}
 
 				client_cb(msg->response_type, detail_msg->event, (void *)info, client_context->register_user_param, NULL);
+			}
+		}
+		break;
+
+		case NET_NFC_MESSAGE_SERVICE_INIT:
+		{
+			net_nfc_response_test_t* detail_msg = (net_nfc_response_test_t*)msg->detail_message;
+
+			DEBUG_CLIENT_MSG("net_nfc_client_dispatch_response NET_NFC_MESSAGE_SERVICE_INIT [%x]" , detail_msg->trans_param);
+
+			if(client_cb != NULL)
+			{
+				client_cb(NET_NFC_MESSAGE_INIT, detail_msg->result , NULL, detail_msg->trans_param, NULL);
+			}
+		}
+		break;
+
+		case NET_NFC_MESSAGE_SERVICE_DEINIT:
+		{
+			net_nfc_response_test_t* detail_msg = (net_nfc_response_test_t*)msg->detail_message;
+
+			DEBUG_CLIENT_MSG("net_nfc_client_dispatch_response NET_NFC_MESSAGE_SERVICE_DEINIT [%x]" , detail_msg->trans_param);
+
+			if(client_cb != NULL)
+			{
+				client_cb(NET_NFC_MESSAGE_DEINIT, detail_msg->result , NULL, detail_msg->trans_param, NULL);
 			}
 		}
 		break;

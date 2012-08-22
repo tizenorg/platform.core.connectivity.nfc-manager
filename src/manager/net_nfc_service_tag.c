@@ -14,13 +14,13 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc_controller_private.h"
 #include "net_nfc_util_private.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_debug_private.h"
 #include "net_nfc_service_private.h"
 #include "net_nfc_app_util_private.h"
-#include "net_nfc_dbus_service_obj_private.h"
 #include "net_nfc_server_ipc_private.h"
 #include "net_nfc_server_dispatcher_private.h"
 #include "net_nfc_manager_util_private.h"
@@ -73,11 +73,15 @@ void net_nfc_service_watch_dog(net_nfc_request_msg_t* req_msg)
 	{
 		//DEBUG_SERVER_MSG("try to disconnect target = [%d]", detail_msg->handle);
 
-		if (net_nfc_controller_disconnect(detail_msg->handle, &result) == false)
+		if((NET_NFC_NOT_INITIALIZED != result) && (NET_NFC_INVALID_HANDLE != result))
 		{
-			net_nfc_controller_exception_handler();
-		}
+			if (net_nfc_controller_disconnect(detail_msg->handle, &result) == false)
+			{
 
+				DEBUG_SERVER_MSG("try to disconnect result = [%d]", result);
+				net_nfc_controller_exception_handler();
+			}
+		}
 #ifdef BROADCAST_MESSAGE
 		net_nfc_server_set_server_state( NET_NFC_SERVER_IDLE);
 #endif

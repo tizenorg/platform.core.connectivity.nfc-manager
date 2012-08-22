@@ -1,19 +1,21 @@
 /*
- * Copyright (C) 2010 NXP Semiconductors
- * Copyright (C) 2012 Samsung Electronics Co., Ltd
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+  * Copyright (C) 2010 NXP Semiconductors
+  * Copyright (C) 2012 Samsung Electronics Co., Ltd
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *      http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+
+
 
 
 #ifndef __NET_NFC_INTERNAL_TYPEDEF_H__
@@ -376,17 +378,16 @@ typedef enum _client_state_e
 	NET_NFC_CLIENT_ACTIVE_STATE,
 } client_state_e;
 
-typedef enum _server_state_e
-{
-	NET_NFC_SERVER_IDLE,
-	NET_NFC_SERVER_DISCOVERY,
-	NET_NFC_TAG_CONNECTED,
-	NET_NFC_SE_CONNECTED,
-	NET_NFC_LLCP_CONNECTED,
-	NET_NFC_SNEP_CLIENT_CONNECTED,
-	NET_NFC_NPP_CLIENT_CONNECTED,
-	NET_NFC_SNEP_SERVER_CONNECTED,
-} server_state_e;
+/* server state */
+#define NET_NFC_SERVER_IDLE				0
+#define NET_NFC_SERVER_DISCOVERY			(1 << 1)
+#define NET_NFC_TAG_CONNECTED				(1 << 2)
+#define NET_NFC_SE_CONNECTED				(1 << 3)
+#define NET_NFC_SNEP_CLIENT_CONNECTED	(1 << 4)
+#define NET_NFC_NPP_CLIENT_CONNECTED		(1 << 5)
+#define NET_NFC_SNEP_SERVER_CONNECTED	(1 << 6)
+#define NET_NFC_NPP_SERVER_CONNECTED		(1 << 7)
+
 
 #define	NET_NFC_CLIENT_TYPE_INVALID  0x00
 #define	NET_NFC_CLIENT_TYPE_MASTER 0x01
@@ -413,6 +414,16 @@ typedef struct _net_nfc_request_change_client_state_t
 	client_state_e client_state;
 	int client_type;
 } net_nfc_request_change_client_state_t;
+
+typedef struct _net_nfc_request_set_launch_state_t
+{
+	/* DON'T MODIFY THIS CODE - BEGIN */
+	uint32_t length;
+	uint32_t request_type;
+	uint32_t user_param;
+	/* DON'T MODIFY THIS CODE - END */
+	bool set_launch_popup;
+}net_nfc_request_set_launch_state_t;
 
 typedef struct _net_nfc_request_transceive_t
 {
@@ -463,6 +474,8 @@ typedef struct _net_nfc_request_test_t
 	/* DON'T MODIFY THIS CODE - END */
 	net_nfc_target_handle_s *handle;
 	void *trans_param;
+	uint32_t tech;
+	uint32_t rate;
 } net_nfc_request_test_t;
 
 typedef struct _net_nfc_request_make_read_only_ndef_t
@@ -1155,7 +1168,7 @@ typedef struct _net_nfc_response_send_apdu_t
 typedef struct _net_nfc_response_get_server_state_t
 {
 	net_nfc_error_e result;
-	server_state_e state;
+	uint32_t state;
 } net_nfc_response_get_server_state_t;
 
 typedef struct _net_nfc_response_connection_handover
@@ -1166,6 +1179,13 @@ typedef struct _net_nfc_response_connection_handover
 	data_s data;
 }
 net_nfc_response_connection_handover_t;
+
+typedef struct _net_nfc_response_get_firmware_version
+{
+	net_nfc_error_e result;
+	data_s data;
+}
+net_nfc_response_get_firmware_version_t;
 
 typedef struct _client_context
 {
@@ -1269,6 +1289,7 @@ typedef enum _net_nfc_message_service_e
 	NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE,
 	NET_NFC_MESSAGE_SERVICE_WATCH_DOG,
 	NET_NFC_MESSAGE_SERVICE_CLEANER,
+	NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE,
 } net_nfc_message_service_e;
 
 typedef enum _net_nfc_se_command_e
@@ -1304,6 +1325,31 @@ typedef struct _net_nfc_carrier_config_s
 	int length;
 	struct _GList *data;
 } net_nfc_carrier_config_s;
+
+typedef struct _net_nfc_sub_field_s
+{
+	uint16_t length;
+	uint8_t value[0];
+}
+__attribute__((packed)) net_nfc_sub_field_s;
+
+typedef struct _net_nfc_signature_record_s
+{
+	uint8_t version;
+	uint8_t sign_type : 7;
+	uint8_t uri_present : 1;
+	net_nfc_sub_field_s signature;
+}
+__attribute__((packed)) net_nfc_signature_record_s;
+
+typedef struct _net_nfc_certificate_chain_s
+{
+	uint8_t num_of_certs : 4;
+	uint8_t cert_format : 3;
+	uint8_t uri_present : 1;
+	uint8_t cert_store[0];
+}
+__attribute__((packed)) net_nfc_certificate_chain_s;
 
 #define SMART_POSTER_RECORD_TYPE "Sp"
 #define URI_RECORD_TYPE "U"

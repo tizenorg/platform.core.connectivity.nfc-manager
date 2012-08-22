@@ -1,10 +1,9 @@
-#sbs-git:slp/pkgs/n/nfc-manager nfc-manager 0.0.1 7e42d204f11700974e83188adca03dcd1b0f0e9c
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version: 0.0.1
-Release:    1
+Version:    0.0.3
+Release:    9
 Group:      libs
-License:    Flora Software License
+License:    Samsung Proprietary License
 Source0:    %{name}-%{version}.tar.gz
 Source1:    libnfc-manager-0.init.in
 BuildRequires: pkgconfig(aul)
@@ -21,6 +20,10 @@ BuildRequires: pkgconfig(mm-sound)
 BuildRequires: pkgconfig(appsvc)
 BuildRequires: pkgconfig(heynoti)
 BuildRequires: pkgconfig(svi)
+BuildRequires: pkgconfig(smartcard-service)
+BuildRequires: pkgconfig(smartcard-service-common)
+BuildRequires: pkgconfig(libssl)
+BuildRequires: pkgconfig(pmapi)
 BuildRequires: cmake
 BuildRequires: gettext-tools
 Requires(post):   /sbin/ldconfig
@@ -74,15 +77,14 @@ chmod 755 %{buildroot}/etc/init.d/libnfc-manager-0
 
 %post
 /sbin/ldconfig
-#vconftool set -t string memory/nfc/client/deb.com.samsung.gallery "" -g 6517 -i
-#vconftool set -t string memory/nfc/client/deb.com.samsung.browser "" -g 6517 -i
-#vconftool set -t string memory/nfc/client/deb.com.samsung.contacts "" -g 6517 -i
-#vconftool set -t string memory/nfc/client/deb.com.samsung.video-player "" -g 6517 -i
-#vconftool set -t string memory/nfc/client/eeprom "" -g 6517 -i
 vconftool set -t bool db/nfc/feature 0 -u 5000
+vconftool set -t bool db/nfc/enable 0 -u 5000
+vconftool set -t bool db/nfc/sbeam 0 -u 5000
 
-ln -s /etc/rc.d/init.d/libnfc-manager-0 /etc/rc.d/rc3.d/S81libnfc-manager-0
-ln -s /etc/rc.d/init.d/libnfc-manager-0 /etc/rc.d/rc5.d/S81libnfc-manager-0
+vconftool set -t bool memory/private/nfc-manager/popup_disabled 0 -u 5000
+
+ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc3.d/S81libnfc-manager-0
+ln -s /etc/init.d/libnfc-manager-0 /etc/rc.d/rc5.d/S81libnfc-manager-0
 
 %postun
 /sbin/ldconfig
@@ -97,12 +99,10 @@ rm -f /etc/rc.d/rc5.d/S81libnfc-manager-0
 
 %files
 %defattr(-,root,root,-)
-#@DATADIR@/data/nfc-manager-daemon/config/nfc-manager-config.txt
 %{_libdir}/libnfc.so.1
 %{_libdir}/libnfc.so.1.0.0
-%{_prefix}/bin/nfc-agent
 %{_prefix}/bin/nfc-manager-daemon
-%{_prefix}/share/dbus-1/services/com.samsung.slp.nfc.agent.service
+%{_prefix}/bin/ndef-tool
 /etc/init.d/libnfc-manager-0
 
 %files devel

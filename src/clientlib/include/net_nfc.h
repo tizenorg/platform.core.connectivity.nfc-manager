@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 /**
   NFC Manager
   NFC Manager controls the nfc device with high level APIs such as SmartPoster ans Connection handover.
@@ -372,6 +373,10 @@ net_nfc_error_e net_nfc_state_activate(int client_type);
 net_nfc_error_e net_nfc_state_deactivate(void);
 
 net_nfc_error_e net_nfc_sim_test(void);
+net_nfc_error_e net_nfc_prbs_test(int tech , int rate);
+
+net_nfc_error_e net_nfc_get_firmware_version(void);
+
 void net_nfc_test_read_test_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data);
 void net_nfc_test_sim_test_cb(net_nfc_message_e message, net_nfc_error_e result, void* data, void* user_param, void * trans_data);
 

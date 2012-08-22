@@ -14,13 +14,16 @@
   * limitations under the License.
   */
 
-#ifndef __NET_NFC_AGENT__
-#define __NET_NFC_AGENT__
 
+#ifndef NET_NFC_UTIL_ACCESS_CONTROL_PRIVATE_H
+#define NET_NFC_UTIL_ACCESS_CONTROL_PRIVATE_H
 
-int _net_nfc_launch_net_nfc_manager ();
-int _net_nfc_terminate_net_nfc_manager ();
-int _net_nfc_is_terminated ();
+#include "net_nfc_typedef_private.h"
 
+bool net_nfc_util_access_control_is_initialized(void);
+void net_nfc_util_access_control_initialize(void);
+void net_nfc_util_access_control_update_list(void);
+bool net_nfc_util_access_control_is_authorized_package(const char* pkg_name, uint8_t *aid, uint32_t length);
+void net_nfc_util_access_control_release(void);
 
 #endif

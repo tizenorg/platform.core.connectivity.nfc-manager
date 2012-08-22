@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -1027,6 +1028,51 @@ net_nfc_response_msg_t* net_nfc_client_read_response_msg(net_nfc_error_e* result
 		}
 		break;
 
+		case NET_NFC_MESSAGE_PRBS_TEST:
+		{
+			net_nfc_response_test_t * resp_detail = NULL;
+			int res = 0;
+
+			DEBUG_CLIENT_MSG("message from server NET_NFC_MESSAGE_PRBS_TEST");
+
+
+			res = __net_nfc_client_read_util ((void **)&resp_detail, sizeof (net_nfc_response_test_t));
+			if (res != 1){
+				_net_nfc_client_util_free_mem(resp_msg);
+				return NULL;
+			}
+			resp_msg->detail_message = resp_detail;
+		}
+		break;
+
+	case NET_NFC_MESSAGE_GET_FIRMWARE_VERSION :
+		{
+			net_nfc_response_get_firmware_version_t * resp_detail = NULL;
+			int res = 0;
+
+			DEBUG_CLIENT_MSG("message from server NET_NFC_MESSAGE_GET_FIRMWARE_VERSION");
+
+			if (__net_nfc_client_read_util((void **)&resp_detail, sizeof(net_nfc_response_get_firmware_version_t)) > 0)
+			{
+				if (__net_nfc_client_read_util((void **)&(resp_detail->data.buffer), resp_detail->data.length) > 0)
+				{
+					resp_msg->detail_message = resp_detail;
+				}
+				else
+				{
+					_net_nfc_client_util_free_mem(resp_msg);
+					_net_nfc_client_util_free_mem(resp_detail);
+					return NULL;
+				}
+			}
+			else
+			{
+				_net_nfc_client_util_free_mem(resp_msg);
+				return NULL;
+			}
+		}
+		break;
+
 		case NET_NFC_MESSAGE_NOTIFY:
 		{
 			net_nfc_response_notify_t * resp_detail = NULL;
@@ -1353,6 +1399,41 @@ net_nfc_response_msg_t* net_nfc_client_read_response_msg(net_nfc_error_e* result
 			net_nfc_response_get_current_target_handle_t * resp_detail = NULL;
 			int res = 0;
 			res = __net_nfc_client_read_util ((void **)&resp_detail, sizeof (net_nfc_response_get_current_target_handle_t));
+			if (res != 1){
+				_net_nfc_client_util_free_mem(resp_msg);
+				return NULL;
+			}
+			resp_msg->detail_message = resp_detail;
+
+		}
+		break;
+
+
+		case NET_NFC_MESSAGE_SERVICE_INIT:
+		{
+			net_nfc_response_test_t * resp_detail = NULL;
+			int res = 0;
+
+			DEBUG_CLIENT_MSG("Client Receive the NET_NFC_MESSAGE_SERVICE_INIT");
+
+			res = __net_nfc_client_read_util ((void **)&resp_detail, sizeof (net_nfc_response_test_t));
+			if (res != 1){
+				_net_nfc_client_util_free_mem(resp_msg);
+				return NULL;
+			}
+			resp_msg->detail_message = resp_detail;
+
+		}
+		break;
+
+		case NET_NFC_MESSAGE_SERVICE_DEINIT:
+		{
+			net_nfc_response_test_t * resp_detail = NULL;
+			int res = 0;
+
+			DEBUG_CLIENT_MSG("Client Receive the NET_NFC_MESSAGE_SERVICE_DEINIT");
+
+			res = __net_nfc_client_read_util ((void **)&resp_detail, sizeof (net_nfc_response_test_t));
 			if (res != 1){
 				_net_nfc_client_util_free_mem(resp_msg);
 				return NULL;

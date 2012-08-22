@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2010 NXP Semiconductors
- * Copyright (C) 2012 Samsung Electronics Co., Ltd
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+  * Copyright (C) 2010 NXP Semiconductors
+  * Copyright (C) 2012 Samsung Electronics Co., Ltd
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *      http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+
 
 
 #include "net_nfc_debug_private.h"
@@ -46,6 +47,9 @@ void __phFriNfc_NdefRecord_RecordFlag(uint8_t *rawData, ndef_record_s* record)
 	{
 		record->IL = 1;
 	}
+	DEBUG_MSG("__phFriNfc_NdefRecord_RecordFlag MB[%d]ME[%d]CF[%d]SR[%d]IL[%d]", record->MB,record->ME,record->CF,record->SR,record->IL  );
+
+
 }
 
 /* Calculate the Type Name Format for the record */
@@ -69,6 +73,8 @@ uint8_t __phFriNfc_NdefRecord_TypeNameFormat(uint8_t *rawData, ndef_record_s* re
 		tnf = 0xFF;
 		break;
 	}
+	DEBUG_MSG("__phFriNfc_NdefRecord_TypeNameFormat tnf[%d]", tnf  );
+
 	return tnf;
 
 }
@@ -148,6 +154,44 @@ net_nfc_error_e __phFriNfc_NdefRecord_RecordIDCheck(uint8_t *rawData,
 			*IDLength = 0;
 		}
 	}
+	else if(record->TNF == NET_NFC_NDEF_TNF_ABSURI) /* temp_patch_for_absoluteURI */
+	{
+		*TypeLength = *(rawData + SLP_FRINET_NFC_NDEFRECORD_BUF_INC1);
+		*TypeLengthByte = 1;
+		DEBUG_MSG("__phFriNfc_NdefRecord_RecordIDCheck TypeLength = [%d]", *TypeLength);
+
+
+		/* Check for Short Record */
+		if (record->SR)
+		{
+			/* For Short Record, Payload Length Byte is 1 */
+			*PayloadLengthByte = 1;
+			/*  1 for Header byte */
+			*PayloadLength = *(rawData + *TypeLengthByte + SLP_FRINET_NFC_NDEFRECORD_BUF_INC1);
+		}
+		else
+		{
+			/* For Normal Record, Payload Length Byte is 4 */
+			*PayloadLengthByte = SLPFRINFCNDEFRECORD_NORMAL_RECORD_BYTE;
+			*PayloadLength = ((((uint32_t)(*(rawData + SLP_FRINET_NFC_NDEFRECORD_BUF_INC2))) << SLPNFCSTSHL24) +
+				(((uint32_t)(*(rawData + SLP_FRINET_NFC_NDEFRECORD_BUF_INC3))) << SLPNFCSTSHL16) +
+				(((uint32_t)(*(rawData + SLP_FRINET_NFC_NDEFRECORD_BUF_INC4))) << SLPNFCSTSHL8) +
+				*(rawData + SLP_FRINET_NFC_NDEFRECORD_BUF_INC5));
+		}
+
+		if (record->IL)
+		{
+			*IDLengthByte = 1;
+			/*  1 for Header byte */
+			*IDLength = (uint8_t)*(rawData + *PayloadLengthByte + *TypeLengthByte + SLP_FRINET_NFC_NDEFRECORD_BUF_INC1);
+		}
+		else
+		{
+			*IDLengthByte = 0;
+			*IDLength = 0;
+		}
+
+	}
 	else
 	{
 		if (record->TNF == NET_NFC_NDEF_TNF_UNKNOWN
@@ -161,11 +205,6 @@ net_nfc_error_e __phFriNfc_NdefRecord_RecordIDCheck(uint8_t *rawData,
 			}
 			*TypeLength = 0;
 			*TypeLengthByte = 1;
-		}
-		else if(record->TNF == NET_NFC_NDEF_TNF_ABSURI) /* temp_patch_for_absoluteURI */
-		{
-			*TypeLength = 0;
-			*TypeLengthByte = 0;
 		}
 		else
 		{
@@ -288,9 +327,14 @@ net_nfc_error_e __phFriNfc_NdefRecord_Parse(ndef_record_s*Record, uint8_t *RawRe
 			}
 
 			RawRecord = RawRecord + Record->id_s.length;
-			_net_nfc_util_alloc_mem(Record->payload_s.buffer, Record->payload_s.length);
-			if (Record->payload_s.buffer != NULL)
-				memcpy(Record->payload_s.buffer, RawRecord, Record->payload_s.length);
+
+			if (Record->payload_s.length != 0)
+			{
+				_net_nfc_util_alloc_mem(Record->payload_s.buffer, Record->payload_s.length);
+				if (Record->payload_s.buffer != NULL)
+					memcpy(Record->payload_s.buffer, RawRecord, Record->payload_s.length);
+			}
+			DEBUG_MSG("__phFriNfc_NdefRecord_Parse Record->type_s.buffer= [%s]", Record->type_s.buffer);
 
 			*readData = RawRecord + Record->payload_s.length - original;
 		}
@@ -403,7 +447,9 @@ net_nfc_error_e __phFriNfc_NdefRecord_Generate(ndef_record_s *Record,
 	}
 	else if (FlagCheck == NET_NFC_NDEF_TNF_ABSURI )  /* temp_patch_for_absoluteURI */
 	{
-		// nothing for type
+		*Buffer = Record->type_s.length;
+		Buffer++;
+		TypeCheck = 1;
 	}
 	else
 	{

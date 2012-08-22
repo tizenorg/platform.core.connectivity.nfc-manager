@@ -14,7 +14,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(commonlib_pkges REQUIRED glib-2.0 dlog bluetooth-api svi)
+pkg_check_modules(commonlib_pkges REQUIRED glib-2.0 dlog bluetooth-api svi libssl)
 
 FOREACH(flag ${commonlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -61,6 +61,7 @@ SET(COMMON_LIB_HEADER
 	include/net_nfc_util_ndef_message.h
 	include/net_nfc_util_handover.h
 	include/net_nfc_util_ndef_record.h
+	include/net_nfc_util_sign_record.h
 )
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${NFC_COMMON_LIB}.pc.in ${CMAKE_CURRENT_SOURCE_DIR}/${NFC_COMMON_LIB}.pc)

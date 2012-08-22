@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -37,6 +38,8 @@
 #include "net_nfc_controller_private.h"
 #include "net_nfc_manager_util_private.h"
 
+#include "vconf.h"
+
 #ifdef SECURITY_SERVER
 #include <security-server.h>
 #endif
@@ -51,6 +54,7 @@ typedef struct _net_nfc_client_info_t{
 	client_state_e state;
 	int client_type;
 	//client_type_e client_type;
+	bool is_set_launch_popup;
 	net_nfc_target_handle_s* target_handle;
 }net_nfc_client_info_t;
 
@@ -64,7 +68,7 @@ typedef struct _net_nfc_client_info_t{
 /* static variable */
 
 static net_nfc_server_info_t g_server_info = {0,};
-static net_nfc_client_info_t g_client_info[NET_NFC_CLIENT_MAX] = {{0, NULL, 0, NET_NFC_CLIENT_INACTIVE_STATE, 0, NULL},};
+static net_nfc_client_info_t g_client_info[NET_NFC_CLIENT_MAX] = {{0, NULL, 0, NET_NFC_CLIENT_INACTIVE_STATE, 0, FALSE, NULL},};
 
 #ifdef SECURITY_SERVER
 static char* cookies = NULL;
@@ -242,6 +246,9 @@ bool net_nfc_server_ipc_initialize()
 	net_nfc_dispatcher_start_thread();
 
 	DEBUG_SERVER_MSG("server ipc is initialized");
+
+	if(vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, TRUE) != 0)
+		DEBUG_ERR_MSG("SERVER : launch state set vconf fail");
 
 	return true;
 ERROR:
@@ -543,7 +550,8 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 	DEBUG_SERVER_MSG("message from client. request type = [%d]", req_msg->request_type);
 
 #ifdef BROADCAST_MESSAGE
-	if(req_msg->request_type != NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE)
+	if(req_msg->request_type != NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE &&
+		req_msg->request_type != NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE)
 	{
 		net_nfc_server_received_message_s* p = (net_nfc_server_received_message_s*)malloc(sizeof(net_nfc_server_received_message_s));
 
@@ -557,7 +565,7 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 	/* process exceptional case of request type */
 	switch (req_msg->request_type)
 	{
-	case NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE :
+		case NET_NFC_MESSAGE_SERVICE_CHANGE_CLIENT_STATE :
 		{
 			net_nfc_request_change_client_state_t *detail = (net_nfc_request_change_client_state_t *)req_msg;
 
@@ -615,8 +623,16 @@ bool net_nfc_server_read_client_request(int client_sock_fd, net_nfc_error_e *res
 		}
 		break;
 
-	default :
+		case NET_NFC_MESSAGE_SERVICE_SET_LAUNCH_STATE :
+		{
+			net_nfc_request_set_launch_state_t *detail = (net_nfc_request_set_launch_state_t *)req_msg;
+
+			net_nfc_server_set_launch_state(client_sock_fd, detail->set_launch_popup);
+		}
 		break;
+
+		default :
+			break;
 	}
 
 #ifdef SECURITY_SERVER
@@ -699,6 +715,9 @@ static bool net_nfc_server_cleanup_client_context(GIOChannel* channel)
 
 			g_server_info.connected_client_count--;
 
+			if(vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, net_nfc_server_is_set_launch_state()) != 0)
+				DEBUG_ERR_MSG("SERVER :set launch vconf fail");
+
 			break;
 		}
 	}
@@ -732,6 +751,29 @@ bool net_nfc_server_send_message_to_client(void* message, int length)
 			pthread_mutex_lock(&g_server_socket_lock);
 			leng = send(p1->client_fd, (void *)message, length, 0);
 			pthread_mutex_unlock(&g_server_socket_lock);
+
+
+
+			if ((mes_type ==   NET_NFC_MESSAGE_SERVICE_INIT)||(mes_type ==   NET_NFC_MESSAGE_SERVICE_DEINIT))
+			{
+
+				for(i=0; i<NET_NFC_CLIENT_MAX; i++)
+				{
+					if((g_client_info[i].socket)&&(g_client_info[i].socket !=p1->client_fd))
+					{
+						pthread_mutex_lock(&g_server_socket_lock);
+						leng = send(g_client_info[i].socket, (void *)message, length, 0);
+						pthread_mutex_unlock(&g_server_socket_lock);
+					}
+
+					if(leng <= 0)
+					{
+						DEBUG_ERR_MSG("failed to send message, socket = [%d], msg_length = [%d]", g_server_info.client_sock_fd, length);
+					}
+				}
+
+			}
+
 
 			if(p2 != NULL)
 			{
@@ -971,6 +1013,7 @@ static bool net_nfc_server_add_client_context(int socket, GIOChannel* channel, u
 			g_client_info[i].channel = channel;
 			g_client_info[i].src_id = src_id;
 			g_client_info[i].state = state;
+			g_client_info[i].is_set_launch_popup = TRUE;
 
 			ret = true;
 
@@ -1038,18 +1081,32 @@ bool net_nfc_server_set_client_type(int socket, int type)
 	return ret;
 }
 
-bool net_nfc_server_set_server_state(server_state_e state)
+bool net_nfc_server_set_server_state(uint32_t state)
 {
 	pthread_mutex_lock(&g_server_socket_lock);
 
-	g_server_info.state = state;
+	if (state == NET_NFC_SERVER_IDLE)
+		g_server_info.state &= NET_NFC_SERVER_IDLE;
+	else
+		g_server_info.state |= state;
 
 	pthread_mutex_unlock(&g_server_socket_lock);
 
 	return true;
 }
 
-server_state_e net_nfc_server_get_server_state()
+bool net_nfc_server_unset_server_state(uint32_t state)
+{
+	pthread_mutex_lock(&g_server_socket_lock);
+
+	g_server_info.state &= ~state;
+
+	pthread_mutex_unlock(&g_server_socket_lock);
+
+	return true;
+}
+
+uint32_t net_nfc_server_get_server_state()
 {
 	return g_server_info.state;
 }
@@ -1154,11 +1211,6 @@ bool _net_nfc_check_client_handle ()
 }
 
 
-server_state_e net_nfc_get_server_state()
-{
-	return g_server_info.state;
-}
-
 void net_nfc_server_set_tag_info(void * info)
 {
 	net_nfc_request_target_detected_t* detail = (net_nfc_request_target_detected_t *)info;
@@ -1199,4 +1251,49 @@ void net_nfc_server_free_current_tag_info()
 	pthread_mutex_unlock(&g_server_socket_lock);
 }
 
+void net_nfc_server_set_launch_state(int socket, bool enable)
+{
+	int i = 0;
+
+	if(vconf_set_bool(NET_NFC_DISABLE_LAUNCH_POPUP_KEY, enable) != 0)
+		DEBUG_ERR_MSG("SERVER : launch state set vconf fail");
+
+	pthread_mutex_lock(&g_server_socket_lock);
+
+	if(enable == TRUE)
+	{
+		for(; i < NET_NFC_CLIENT_MAX; i++)
+		{
+			g_client_info[i].is_set_launch_popup = enable;
+		}
+	}
+	else
+	{
+		for(; i < NET_NFC_CLIENT_MAX; i++)
+		{
+			if(g_client_info[i].socket == socket)
+			{
+				g_client_info[i].is_set_launch_popup = enable;
+
+				break;
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&g_server_socket_lock);
+
+}
+
+bool net_nfc_server_is_set_launch_state()
+{
+	int i = 0;
+
+	for(; i < NET_NFC_CLIENT_MAX; i++)
+	{
+		if(g_client_info[i].socket > 0 && g_client_info[i].is_set_launch_popup == FALSE)
+			return FALSE;
+	}
+
+	return TRUE;
+}
 

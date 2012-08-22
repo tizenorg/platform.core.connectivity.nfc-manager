@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_UTIL_NDEF_MESSAGE__
 #define __NET_NFC_UTIL_NDEF_MESSAGE__
 

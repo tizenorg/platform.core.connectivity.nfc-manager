@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef NET_NFC_CONTROLLER_H
 #define NET_NFC_CONTROLLER_H
 
@@ -26,6 +27,7 @@ bool net_nfc_controller_init (net_nfc_error_e* result);
 bool net_nfc_controller_deinit (void);
 bool net_nfc_controller_register_listener(target_detection_listener_cb target_detection_listener, se_transaction_listener_cb se_transaction_listener, llcp_event_listener_cb llcp_event_listener, net_nfc_error_e* result);
 bool net_nfc_controller_unregister_listener(void);
+bool net_nfc_controller_get_firmware_version(data_s **data, net_nfc_error_e *result);
 bool net_nfc_controller_check_firmware_version(net_nfc_error_e* result);
 bool net_nfc_controller_update_firmware(net_nfc_error_e* result);
 bool net_nfc_controller_get_stack_information(net_nfc_stack_information_s* stack_info, net_nfc_error_e* result);
@@ -70,8 +72,13 @@ bool net_nfc_controller_llcp_get_remote_socket_info (net_nfc_target_handle_s* ha
 // LLCP API DEFINE
 
 bool net_nfc_controller_sim_test(net_nfc_error_e* result);
+bool net_nfc_controller_prbs_test(net_nfc_error_e* result , uint32_t tech , uint32_t rate);
+
 bool net_nfc_controller_test_mode_on(net_nfc_error_e* result);
 bool net_nfc_controller_test_mode_off(net_nfc_error_e* result);
 bool net_nfc_test_sim(void);
+
+bool net_nfc_controller_support_nfc(net_nfc_error_e* result);
+
 #endif
 

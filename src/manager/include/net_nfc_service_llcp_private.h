@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef NET_NFC_SERVICE_LLCP_PRIVATE_H
 #define NET_NFC_SERVICE_LLCP_PRIVATE_H
 

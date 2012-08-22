@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #include "net_nfc.h"
 #include "net_nfc_typedef.h"
 #include "net_nfc_util_private.h"

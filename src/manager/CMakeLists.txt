@@ -14,7 +14,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 security-server dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti)
+pkg_check_modules(manager_pkges REQUIRED aul glib-2.0 gobject-2.0 security-server dbus-glib-1 vconf dlog tapi appsvc libcurl bluetooth-api heynoti smartcard-service smartcard-service-common libssl pmapi)
 
 FOREACH(flag ${manager_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -69,19 +69,7 @@ ADD_EXECUTABLE(${NFC_MANAGER_DAEMON} ${MANAGER_SRCS})
 TARGET_LINK_LIBRARIES(${NFC_MANAGER_DAEMON} ${manager_pkges_LDFLAGS} "-lpthread -lrt -pie -ldl" "-L${CMAKE_CURRENT_SOURCE_DIR}/../../cmake_tmp/src/commonlib/" "-lnfc-common-lib")
 #TARGET_LINK_LIBRARIES(${NFC_MANAGER_DAEMON} ${manager_pkges_LDFLAGS} "-L${CMAKE_CURRENT_SOURCE_DIR}/../../cmake_tmp/src/stack/" "-lnfc-stack")
 
-ADD_CUSTOM_TARGET(dbus_service_glue_private.h
-                COMMAND dbus-binding-tool --prefix=dbus_service ${CMAKE_CURRENT_SOURCE_DIR}/resource/dbus_service.xml
-		--mode=glib-server --output=${CMAKE_CURRENT_SOURCE_DIR}/include/dbus_service_glue_private.h
-                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resource/dbus_service.xml
-)
-ADD_DEPENDENCIES(${NFC_MANAGER_DAEMON} dbus_service_glue_private.h)
 
-ADD_CUSTOM_TARGET(dbus_service_binding_private.h
-		COMMAND dbus-binding-tool --prefix=dbus_service ${CMAKE_CURRENT_SOURCE_DIR}/resource/dbus_service.xml
-		--mode=glib-client --output=${CMAKE_CURRENT_SOURCE_DIR}/include/dbus_service_binding_private.h
-                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resource/dbus_service.xml
-)
-ADD_DEPENDENCIES(${NFC_MANAGER_DAEMON} dbus_service_binding_private.h)
 
 INSTALL(TARGETS ${NFC_MANAGER_DAEMON} DESTINATION bin)
 

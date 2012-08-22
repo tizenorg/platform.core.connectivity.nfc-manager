@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef NET_NFC_OEM_CONTROLLER_H
 #define NET_NFC_OEM_CONTROLLER_H
 
@@ -23,6 +24,7 @@ typedef bool (*net_nfc_oem_controller_init)(net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_deinit)(void);
 typedef bool (*net_nfc_oem_controller_register_listener)(target_detection_listener_cb target_detection_listener, se_transaction_listener_cb se_transaction_listener, llcp_event_listener_cb llcp_event_listener, net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_unregister_listener)(void);
+typedef bool (*net_nfc_oem_controller_get_firmware_version)(data_s **data, net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_check_firmware_version)(net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_update_firmware)(net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_get_stack_information)(net_nfc_stack_information_s *stack_info, net_nfc_error_e *result);
@@ -63,8 +65,12 @@ typedef bool (*net_nfc_oem_controller_llcp_get_remote_config)(net_nfc_target_han
 typedef bool (*net_nfc_oem_controller_llcp_get_remote_socket_info)(net_nfc_target_handle_s *handle, net_nfc_llcp_socket_t socket, net_nfc_llcp_socket_option_s *option, net_nfc_error_e *result);
 
 typedef bool (*net_nfc_oem_controller_sim_test)(net_nfc_error_e *result);
+typedef bool (*net_nfc_oem_controller_prbs_test)(net_nfc_error_e *result , int tech , int rate);
+
 typedef bool (*net_nfc_oem_controller_test_mode_on)(net_nfc_error_e *result);
 typedef bool (*net_nfc_oem_controller_test_mode_off)(net_nfc_error_e *result);
+
+typedef bool (*net_nfc_oem_controller_support_nfc)(net_nfc_error_e *result);
 
 typedef struct _net_nfc_oem_interface_s
 {
@@ -72,6 +78,7 @@ typedef struct _net_nfc_oem_interface_s
 	net_nfc_oem_controller_deinit deinit;
 	net_nfc_oem_controller_register_listener register_listener;
 	net_nfc_oem_controller_unregister_listener unregister_listener;
+	net_nfc_oem_controller_get_firmware_version get_firmware_version;
 	net_nfc_oem_controller_check_firmware_version check_firmware_version;
 	net_nfc_oem_controller_update_firmware update_firmeware;
 	net_nfc_oem_controller_get_stack_information get_stack_information;
@@ -110,8 +117,12 @@ typedef struct _net_nfc_oem_interface_s
 	net_nfc_oem_controller_llcp_get_remote_socket_info get_remote_socket_info;
 
 	net_nfc_oem_controller_sim_test sim_test;
+	net_nfc_oem_controller_prbs_test prbs_test;
 	net_nfc_oem_controller_test_mode_on test_mode_on;
 	net_nfc_oem_controller_test_mode_off test_mode_off;
+
+	net_nfc_oem_controller_support_nfc support_nfc;
+
 } net_nfc_oem_interface_s;
 
 #endif

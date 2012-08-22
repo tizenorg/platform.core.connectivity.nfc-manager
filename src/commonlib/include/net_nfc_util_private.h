@@ -14,13 +14,35 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_UTIL_H__
 #define __NET_NFC_UTIL_H__
 
 #include <stdio.h>
 #include <libgen.h>
+#include <netinet/in.h>
 
 #include "net_nfc_typedef_private.h"
+
+#define NET_NFC_REVERSE_ORDER_6_BYTES(__array) \
+	do \
+	{ \
+		uint16_t __x = htons(*(uint16_t *)(__array + 4)); \
+		*(uint32_t *)(__array + 2) = htonl(*(uint32_t *)(__array)); \
+		*(uint16_t *)(__array) = __x; \
+	} while (0);
+
+#define NET_NFC_REVERSE_ORDER_16_BYTES(array) \
+	do \
+	{ \
+		uint32_t __x1 = htonl(*(uint32_t *)(array + 12)); \
+		uint32_t __x2 = htonl(*(uint32_t *)(array + 8)); \
+		*(uint32_t *)(array + 8) = htonl(*(uint32_t *)(array + 4)); \
+		*(uint32_t *)(array + 12) = htonl(*(uint32_t *)(array)); \
+		*(uint32_t *)(array) = __x1; \
+		*(uint32_t *)(array + 4) = __x2; \
+	} while (0);
+
 
 typedef enum
 {

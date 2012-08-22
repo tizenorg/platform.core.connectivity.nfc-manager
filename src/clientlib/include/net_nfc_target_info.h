@@ -14,6 +14,7 @@
   * limitations under the License.
   */
 
+
 #ifndef __NET_NFC_TARGET_INFO_H__
 #define __NET_NFC_TARGET_INFO_H__
 

@@ -79,6 +79,7 @@ SET(CLIENT_HEADER
 	include/net_nfc_ndef_record.h
 	include/net_nfc_ndef_message.h
 	include/net_nfc_ndef_message_handover.h
+	include/net_nfc_sign_record.h
 	include/net_nfc_data.h
 	include/net_nfc_apdu.h
 	include/net_nfc_exchanger.h

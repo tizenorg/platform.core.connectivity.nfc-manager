@@ -46,7 +46,7 @@ net_nfc_error_e net_nfc_util_create_record(net_nfc_record_tnf_e recordType, data
 		return NET_NFC_NULL_PARAMETER;
 	}
 
-	if (recordType < NET_NFC_RECORD_EMPTY || recordType > NET_NFC_RECORD_EXTERNAL_RTD)
+	if (recordType < NET_NFC_RECORD_EMPTY || recordType > NET_NFC_RECORD_UNCHAGNED)
 	{
 		return NET_NFC_OUT_OF_BOUND;
 	}
@@ -280,7 +280,6 @@ uint32_t net_nfc_util_get_record_length(ndef_record_s *Record)
 	RecordLength++;
 	if (Record->TNF != NET_NFC_NDEF_TNF_EMPTY &&
 		Record->TNF != NET_NFC_NDEF_TNF_UNKNOWN &&
-		Record->TNF != NET_NFC_NDEF_TNF_ABSURI &&  /* temp_patch_for_absoluteURI */
 		Record->TNF != NET_NFC_NDEF_TNF_UNCHANGED)
 	{
 		RecordLength += Record->type_s.length;

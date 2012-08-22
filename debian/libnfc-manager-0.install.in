@@ -1,7 +1,5 @@
-@DATADIR@/data/nfc-manager-daemon/config/nfc-manager-config.txt
 @PREFIX@/lib/libnfc.so.*
 @PREFIX@/bin/*
-@PREFIX@/share/dbus-1/services/*
 /etc/init.d/*
 /etc/rc.d/*
 
