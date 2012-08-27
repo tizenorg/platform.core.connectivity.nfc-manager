@@ -176,9 +176,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_retrieve_current_ndef_message(ndef_me
 		size = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
 
-		DEBUG_CLIENT_MSG("message length = [%d] \n", size);
+		DEBUG_CLIENT_MSG("message length = [%d]", size);
 
-		if ((buffer = (uint8_t *)calloc(1, size)) != NULL)
+		if (size > 0 && (buffer = (uint8_t *)calloc(1, size)) != NULL)
 		{
 			/* read fully */
 			if ((size = fread(buffer, 1, size, fp)) > 0)

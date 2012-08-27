@@ -158,7 +158,10 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 
 		case NET_NFC_JEWEL_PICC :
 		{
-			_net_nfc_client_util_alloc_mem(send_buffer, 9);
+			if(data->length > 9)
+			{
+				return NET_NFC_INVALID_PARAM;
+			}
 
 			length = sizeof(net_nfc_request_transceive_t) + 9;
 
@@ -168,10 +171,7 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 				return NET_NFC_ALLOC_FAIL;
 			}
 
-			if(data->length > 9)
-			{
-				return NET_NFC_INVALID_PARAM;
-			}
+			_net_nfc_client_util_alloc_mem(send_buffer, 9);
 
 			memcpy(send_buffer, data->buffer, data->length);
 			net_nfc_util_compute_CRC(CRC_B, send_buffer, 9);
@@ -181,7 +181,6 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_transceive(net_nfc_target_handle_h ha
 			request->info.trans_data.length = 9;
 
 			_net_nfc_client_util_free_mem(send_buffer);
-
 		}
 		break;
 

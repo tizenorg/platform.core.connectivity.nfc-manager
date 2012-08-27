@@ -1,7 +1,7 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
 Version:    0.0.3
-Release:    9
+Release:    10
 Group:      libs
 License:    Samsung Proprietary License
 Source0:    %{name}-%{version}.tar.gz

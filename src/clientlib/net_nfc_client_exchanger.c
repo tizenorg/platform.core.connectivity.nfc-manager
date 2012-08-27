@@ -133,15 +133,21 @@ net_nfc_exchanger_cb net_nfc_get_exchanger_cb()
 
 NET_NFC_EXPORT_API net_nfc_error_e net_nfc_unset_exchanger_cb()
 {
+	client_context_t* client_context = net_nfc_get_client_context();
+
 	if (exchanger_cb == NULL)
 	{
 		return NET_NFC_NOT_REGISTERED;
 	}
 
+	if (client_context != NULL)
+		pthread_mutex_lock(&(client_context->g_client_lock));
+	exchanger_cb = NULL;
+	if (client_context != NULL)
+		pthread_mutex_unlock(&(client_context->g_client_lock));
+
 	net_nfc_state_deactivate();
 	net_nfc_deinitialize();
-
-	exchanger_cb = NULL;
 
 	return NET_NFC_OK;
 }

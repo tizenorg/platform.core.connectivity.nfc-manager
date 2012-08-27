@@ -50,6 +50,8 @@ int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h 
 	if (file != NULL)
 	{
 		long int file_size = 0;
+		size_t read = 0;
+
 		fseek(file, 0, SEEK_END);
 		file_size = ftell(file);
 		fseek(file, 0, SEEK_SET);
@@ -61,7 +63,7 @@ int ndef_tool_read_ndef_message_from_file(const char *file_name, ndef_message_h 
 			net_nfc_create_data(&data, NULL, file_size);
 			if (data != NULL)
 			{
-				fread((void *)net_nfc_get_data_buffer(data), 1, file_size, file);
+				read = fread((void *)net_nfc_get_data_buffer(data), 1, file_size, file);
 
 				net_nfc_create_ndef_message_from_rawdata(msg, data);
 
@@ -218,6 +220,8 @@ ndef_record_h _create_record(net_nfc_record_tnf_e tnf, data_h type, data_h id , 
 			memcpy(temp_str, (void *)net_nfc_get_data_buffer(payload), net_nfc_get_data_length(payload));
 
 			net_nfc_create_text_type_record(&result, temp_str, encoding, NET_NFC_ENCODE_UTF_8);
+			free(temp_str);
+
 			if (id != NULL)
 			{
 				net_nfc_set_record_id(result, id);
@@ -229,6 +233,8 @@ ndef_record_h _create_record(net_nfc_record_tnf_e tnf, data_h type, data_h id , 
 			memcpy(temp_str, (void *)net_nfc_get_data_buffer(payload), net_nfc_get_data_length(payload));
 
 			net_nfc_create_uri_type_record(&result, temp_str, 0);
+			free(temp_str);
+
 			if (id != NULL)
 			{
 				net_nfc_set_record_id(result, id);

@@ -407,6 +407,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_mifare_write_block (net_nfc_target_ha
 			return NET_NFC_NOT_INITIALIZED;
 		}
 	}
+	else {
+		return NET_NFC_NOT_INITIALIZED;
+	}
 
 	uint8_t* send_buffer = NULL;
 	uint32_t send_buffer_length = 0;
@@ -541,6 +544,9 @@ NET_NFC_EXPORT_API net_nfc_error_e net_nfc_mifare_write_page (net_nfc_target_han
 		else {
 			return NET_NFC_NOT_INITIALIZED;
 		}
+	}
+	else {
+		return NET_NFC_NOT_INITIALIZED;
 	}
 
 	uint8_t* send_buffer = NULL;

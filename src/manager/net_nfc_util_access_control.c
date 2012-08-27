@@ -101,12 +101,11 @@ bool net_nfc_util_access_control_is_initialized(void)
 
 void net_nfc_util_access_control_initialize(void)
 {
-	se_service_h handle = NULL;
-
 	if (net_nfc_util_access_control_is_initialized() == false)
 	{
-		if ((handle = se_service_create_instance((void *)1, _se_service_connected_cb)) == NULL)
+		if (se_service_create_instance((void *)1, _se_service_connected_cb) == NULL)
 		{
+			DEBUG_ERR_MSG("se_service_create_instance failed");
 		}
 	}
 }
