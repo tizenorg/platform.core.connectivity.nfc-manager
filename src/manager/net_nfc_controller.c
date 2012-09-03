@@ -37,60 +37,7 @@ void* net_nfc_controller_onload()
 	void* handle = NULL;
 	bool (*onload) (net_nfc_oem_interface_s* interfaces);
 
-	FILE *fp;
-	char cpuinfo_buffer[1024];
-	size_t bytes_read;
-	char *match_revision;
-	int revision;
-       	char *token;
-	char *token_cpuinfo[10];
-	int i = 0;
-	const char *library_path;
-
-
-	fp = fopen( "/proc/cpuinfo" , "r" );
-	bytes_read = fread(cpuinfo_buffer , 1 , sizeof(cpuinfo_buffer) , fp);/* Read the cpuinfo to bytes_read */
-	fclose(fp);
-
-	match_revision = strstr(cpuinfo_buffer , "Hardware");
-	if(match_revision != NULL)
-	{
-		token = strtok(match_revision , " :\n");
-
-		while(token != NULL &&  i  < 5)
-		{
-			i++;
-			DEBUG_SERVER_MSG("token = %s\n" , token);
-
-			token=  strtok(NULL , " :\n");
-
-			token_cpuinfo[i] = token;
-			DEBUG_SERVER_MSG("temp[%d]'s value = %s\n" ,i ,  token_cpuinfo[i]);
-		}
-
-		revision = strtol(token_cpuinfo[3] , 0 , 16);
-		DEBUG_SERVER_MSG("revision = %d\n" , revision );
-
-		if((!(strncmp(token_cpuinfo[1] , "SLP_PQ" , 6)) && (revision >= 7))|| !(strncmp(token_cpuinfo[1] , "REDWOOD" , 7)))
-		{
-			DEBUG_SERVER_MSG("It's SLP_PQ && Revision 7!! || REDWOOD revC.\n");
-			library_path = "/usr/lib/libnfc-plugin-65nxp.so";
-
-		}
-		else
-		{
-			DEBUG_SERVER_MSG("It's NOT!!!! SLP_PQ && Revision 7!!\n");
-			library_path = "/usr/lib/libnfc-plugin.so";
-		}
-	}
-	else
-	{
-		DEBUG_SERVER_MSG("It doesn't have Hardware info!! \n");
-		library_path = "/usr/lib/libnfc-plugin.so";
-	}
-
-
-	if((handle = dlopen(library_path/*NET_NFC_OEM_LIBRARY_PATH*/, RTLD_LAZY)) != NULL)
+	if((handle = dlopen(NET_NFC_OEM_LIBRARY_PATH , RTLD_LAZY)) != NULL)
 	{
 		if((onload = dlsym(handle, "onload")) != NULL)
 		{

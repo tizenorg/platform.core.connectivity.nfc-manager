@@ -45,9 +45,6 @@ int main()
 {
 	int result = 0;
 	void *handle = NULL;
-	/*+REDWOOD+*/
-	bool ret = false;
-	/*-REDWOOD-*/
 
 	DEBUG_SERVER_MSG("start nfc manager");
 
@@ -67,38 +64,6 @@ int main()
 		return 0;
 	}
 
-	if (net_nfc_controller_support_nfc(&result) == true)
-	{
-		DEBUG_SERVER_MSG("NFC Support");
-
-		/*+REDWOOD+*/
-		ret = Check_Redwood();
-		if(ret == true)
-		{
-			DEBUG_ERR_MSG("NFC doesn't support");
-
-			vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF);
-			vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
-
-			net_nfc_controller_unload(handle);
-		}
-		else
-		{
-		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_ON);
-	}
-		/*-REDWOOD-*/
-	}
-	else
-	{
-		DEBUG_ERR_MSG("NFC doesn't support");
-
-		vconf_set_bool(VCONFKEY_NFC_FEATURE, VCONFKEY_NFC_FEATURE_OFF);
-		vconf_set_bool(VCONFKEY_NFC_STATE, FALSE);
-
-		net_nfc_controller_unload(handle);
-
-		//return(0);
-	}
 
 	if(net_nfc_server_ipc_initialize() != true)
 	{

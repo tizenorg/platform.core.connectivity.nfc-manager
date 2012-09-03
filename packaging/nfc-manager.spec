@@ -1,7 +1,7 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
 Version:    0.0.3
-Release:    10
+Release:    11
 Group:      libs
 License:    Samsung Proprietary License
 Source0:    %{name}-%{version}.tar.gz
@@ -77,7 +77,7 @@ chmod 755 %{buildroot}/etc/init.d/libnfc-manager-0
 
 %post
 /sbin/ldconfig
-vconftool set -t bool db/nfc/feature 0 -u 5000
+vconftool set -t bool -f db/nfc/feature 1 -u 5000
 vconftool set -t bool db/nfc/enable 0 -u 5000
 vconftool set -t bool db/nfc/sbeam 0 -u 5000
 
