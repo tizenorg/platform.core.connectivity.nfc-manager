@@ -54,11 +54,11 @@
 extern "C" {
 #endif
 
-#define NET_NFC_SERVICE_EMPTY_TYPE "http://tizen.org/appsvc/operation/nfc_empty_type"
-#define NET_NFC_SERVICE_WELL_KNOWN_TYPE "http://tizen.org/appsvc/operation/nfc_well_known_type"
-#define NET_NFC_SERVICE_EXTERNAL_TYPE "http://tizen.org/appsvc/operation/nfc_external_type"
-#define NET_NFC_SERVICE_MIME_TYPE "http://tizen.org/appsvc/operation/nfc_mime_type"
-#define NET_NFC_SERVICE_URI_TYPE "http://tizen.org/appsvc/operation/nfc_uri_type"
+#define NET_NFC_SERVICE_EMPTY_TYPE "http://tizen.org/appcontrol/operation/nfc_empty_type"
+#define NET_NFC_SERVICE_WELL_KNOWN_TYPE "http://tizen.org/appcontrol/operation/nfc_well_known_type"
+#define NET_NFC_SERVICE_EXTERNAL_TYPE "http://tizen.org/appcontrol/operation/nfc_external_type"
+#define NET_NFC_SERVICE_MIME_TYPE "http://tizen.org/appcontrol/operation/nfc_mime_type"
+#define NET_NFC_SERVICE_URI_TYPE "http://tizen.org/appcontrol/operation/nfc_uri_type"
 
 /**
 

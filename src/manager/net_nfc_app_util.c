@@ -390,24 +390,24 @@ static bool _net_nfc_app_util_get_operation_from_record(ndef_record_s *record, c
 	switch (record->TNF)
 	{
 	case NET_NFC_RECORD_WELL_KNOWN_TYPE :
-		op_text = "http://tizen.org/appsvc/operation/nfc_well_known_type";
+		op_text = "http://tizen.org/appcontrol/operation/nfc_well_known_type";
 		break;
 	case NET_NFC_RECORD_MIME_TYPE :
 	{
 		if (__check_is_sbeam_record(record))
-			op_text = "http://tizen.org/appsvc/operation/nfc_sbeam_receive";
+			op_text = "http://tizen.org/appcontrol/operation/nfc_sbeam_receive";
 		else
-			op_text = "http://tizen.org/appsvc/operation/nfc_mime_type";
+			op_text = "http://tizen.org/appcontrol/operation/nfc_mime_type";
 	}
 		break;
 	case NET_NFC_RECORD_URI : /* Absolute URI */
-		op_text = "http://tizen.org/appsvc/operation/nfc_uri_type";
+		op_text = "http://tizen.org/appcontrol/operation/nfc_uri_type";
 		break;
 	case NET_NFC_RECORD_EXTERNAL_RTD : /* external type */
-		op_text = "http://tizen.org/appsvc/operation/nfc_external_type";
+		op_text = "http://tizen.org/appcontrol/operation/nfc_external_type";
 		break;
 	case NET_NFC_RECORD_EMPTY : /* empty_tag */
-		op_text = "http://tizen.org/appsvc/operation/nfc_empty_type";
+		op_text = "http://tizen.org/appcontrol/operation/nfc_empty_type";
 		break;
 	case NET_NFC_RECORD_UNKNOWN : /* unknown msg. discard it */
 	case NET_NFC_RECORD_UNCHAGNED : /* RFU msg. discard it */
@@ -842,7 +842,7 @@ int net_nfc_app_util_launch_se_transaction_app(uint8_t *aid, uint32_t aid_len, u
 	/* launch */
 	bd = bundle_create();
 
-	appsvc_set_operation(bd, "http://tizen.org/appsvc/operation/nfc_se_transaction");
+	appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc_se_transaction");
 	appsvc_set_uri(bd, aid_string);
 	appsvc_add_data(bd, "data", param_string);
 
