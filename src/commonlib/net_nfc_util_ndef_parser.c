@@ -429,7 +429,7 @@ net_nfc_error_e __phFriNfc_NdefRecord_Generate(ndef_record_s *Record,
 	if (FlagCheck == NET_NFC_NDEF_TNF_EMPTY)
 	{
 		/* fill the typelength idlength and payloadlength with zero(empty message)*/
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 2; i++)
 		{
 			*Buffer = SLP_FRINET_NFC_NDEFRECORD_BUF_TNF_VALUE;
 			Buffer++;
