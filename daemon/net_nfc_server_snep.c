@@ -98,7 +98,7 @@ static net_nfc_error_e _snep_server_cb(net_nfc_snep_handle_h handle,
 	_emit_snep_event_signal(parameter, handle, result, type, data);
 
 	if (NET_NFC_LLCP_STOP == type)
-		g_object_unref(parameter);
+		g_variant_unref(parameter);
 
 	return result;
 }
