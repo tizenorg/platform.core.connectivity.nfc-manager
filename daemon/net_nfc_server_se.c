@@ -329,6 +329,7 @@ static void _se_uicc_close(net_nfc_target_handle_s *handle)
 /* SE Functions */
 net_nfc_error_e net_nfc_server_se_disable_card_emulation()
 {
+	int ret;
 	net_nfc_error_e result;
 
 	net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_INVALID);
@@ -336,13 +337,22 @@ net_nfc_error_e net_nfc_server_se_disable_card_emulation()
 
 	/*turn off ESE*/
 	net_nfc_controller_set_secure_element_mode(SECURE_ELEMENT_TYPE_ESE,
-			SECURE_ELEMENT_OFF_MODE, &result);
+		SECURE_ELEMENT_OFF_MODE, &result);
 
 	/*turn off UICC*/
 	net_nfc_controller_set_secure_element_mode(SECURE_ELEMENT_TYPE_UICC,
-			SECURE_ELEMENT_OFF_MODE, &result);
+		SECURE_ELEMENT_OFF_MODE, &result);
 
-	return NET_NFC_OK;
+	ret = vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_TYPE_NONE);
+
+	if (ret != 0)
+	{
+	 	NFC_ERR("vconf_set_int is failed, error type : %d", ret);
+		return NET_NFC_UNKNOWN_ERROR;
+	}
+
+	return result;
+
 }
 
 net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
@@ -362,10 +372,8 @@ net_nfc_error_e net_nfc_server_se_change_se(uint8_t type)
 			{
 				NFC_INFO("waiting for uicc initializing complete...");
 
-				net_nfc_server_se_set_se_type(SECURE_ELEMENT_TYPE_UICC);
-				net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
-
 				gdbus_se_setting.busy = true;
+				result = NET_NFC_OPERATION_FAIL;
 			}
 			else
 			{
@@ -866,113 +874,6 @@ static gboolean se_handle_send_apdu(
 	return result;
 }
 
-static void _se_set_card_emulation_thread_func(gpointer user_data)
-{
-	SeSetCardEmul *data = user_data;
-	net_nfc_error_e result = NET_NFC_OK;
-
-	g_assert(data != NULL);
-	g_assert(data->object != NULL);
-	g_assert(data->invocation != NULL);
-
-	if (data->mode == NET_NFC_CARD_EMELATION_ENABLE)
-	{
-		net_nfc_controller_set_secure_element_mode(net_nfc_server_se_get_se_mode(),
-				SECURE_ELEMENT_VIRTUAL_MODE, &result);
-
-		if (NET_NFC_OK == result)
-		{
-			NFC_DBG("changed to CARD EMULATION ON");
-
-			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_VIRTUAL_MODE);
-		}
-		else
-		{
-			NFC_ERR("CARD EMULATION ON fail [%d]", result);
-		}
-	}
-	else if (data->mode == NET_NFC_CARD_EMULATION_DISABLE)
-	{
-		net_nfc_controller_set_secure_element_mode(net_nfc_server_se_get_se_mode(),
-				SECURE_ELEMENT_OFF_MODE, &result);
-		if (NET_NFC_OK == result)
-		{
-			NFC_DBG("changed to CARD EMULATION OFF");
-
-			net_nfc_server_se_set_se_mode(SECURE_ELEMENT_OFF_MODE);
-		}
-		else
-		{
-			NFC_ERR("CARD EMULATION OFF fail [%d]", result);
-		}
-	}
-	else
-	{
-		result = NET_NFC_INVALID_PARAM;
-	}
-
-	net_nfc_gdbus_secure_element_complete_set_card_emulation(data->object,
-			data->invocation, result);
-
-	g_object_unref(data->invocation);
-	g_object_unref(data->object);
-
-	g_free(data);
-}
-
-static gboolean _se_handle_set_card_emulation(
-		NetNfcGDbusSecureElement *object,
-		GDBusMethodInvocation *invocation,
-		gint arg_mode,
-		GVariant *smack_privilege)
-{
-	bool ret;
-	gboolean result;
-	SeSetCardEmul *data;
-
-	NFC_INFO(">>> REQUEST from [%s]", g_dbus_method_invocation_get_sender(invocation));
-
-	/* check privilege and update client context */
-	ret = net_nfc_server_gdbus_check_privilege(invocation, smack_privilege,
-				"nfc-manager", "w");
-	if (false == ret)
-	{
-		NFC_ERR("permission denied, and finished request");
-
-		return FALSE;
-	}
-
-	data = g_try_new0(SeSetCardEmul, 1);
-	if (NULL == data)
-	{
-		NFC_ERR("Memory allocation failed");
-		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.AllocationError", "Can not allocate memory");
-
-		return FALSE;
-	}
-
-	data->object = g_object_ref(object);
-	data->invocation = g_object_ref(invocation);
-	data->mode = arg_mode;
-
-	result = net_nfc_server_controller_async_queue_push(
-			_se_set_card_emulation_thread_func, data);
-	if (FALSE == result)
-	{
-		g_dbus_method_invocation_return_dbus_error(invocation,
-				"org.tizen.NetNfcService.Se.ThreadError",
-				"can not push to controller thread");
-
-		g_object_unref(data->object);
-		g_object_unref(data->invocation);
-
-		g_free(data);
-	}
-
-	return result;
-}
-
 static void se_set_data_thread_func(gpointer user_data)
 {
 	SeDataSeType *data = user_data;
@@ -986,7 +887,9 @@ static void se_set_data_thread_func(gpointer user_data)
 	if (data->se_type != net_nfc_server_se_get_se_type())
 	{
 		result = net_nfc_server_se_change_se(data->se_type);
-		isTypeChanged = TRUE;
+
+		if(NET_NFC_OK == result)
+			isTypeChanged = TRUE;
 	}
 
 	net_nfc_gdbus_secure_element_complete_set(data->object, data->invocation, result);
@@ -1133,8 +1036,16 @@ static void _se_change_card_emulation_mode_thread_func(gpointer user_data)
 			&& current_mode == SECURE_ELEMENT_TYPE_INVALID)
 	{
 		return_mode = net_nfc_server_se_get_return_se_mode();
-		result = net_nfc_server_se_change_se(return_mode);
-		isChanged = true;
+
+		if(SECURE_ELEMENT_TYPE_INVALID == return_mode)
+		{
+			result = NET_NFC_OPERATION_FAIL;
+		}
+		else
+		{
+			result = net_nfc_server_se_change_se(return_mode);
+			isChanged = true;
+		}
 	}
 	else if(data->mode == SECURE_ELEMENT_INACTIVE_STATE
 			&& current_mode != SECURE_ELEMENT_TYPE_INVALID)
@@ -1231,7 +1142,7 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 	g_signal_connect(se_skeleton, "handle-get", G_CALLBACK(se_handle_get), NULL);
 
 	g_signal_connect(se_skeleton, "handle-set-card-emulation",
-			G_CALLBACK(_se_handle_set_card_emulation), NULL);
+			G_CALLBACK(se_handle_change_card_emulation_mode), NULL);
 
 	g_signal_connect(se_skeleton, "handle-open-secure-element",
 			G_CALLBACK(se_handle_open_secure_element), NULL);
@@ -1243,9 +1154,6 @@ gboolean net_nfc_server_se_init(GDBusConnection *connection)
 
 	g_signal_connect(se_skeleton, "handle-send-apdu",
 			G_CALLBACK(se_handle_send_apdu), NULL);
-
-	g_signal_connect(se_skeleton, "handle-change-card-emulation-mode",
-			G_CALLBACK(se_handle_change_card_emulation_mode), NULL);
 
 	result = g_dbus_interface_skeleton_export(G_DBUS_INTERFACE_SKELETON(se_skeleton),
 			connection, "/org/tizen/NetNfcService/SecureElement", &error);
