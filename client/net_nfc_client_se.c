@@ -1021,7 +1021,8 @@ API void net_nfc_client_se_set_ese_detection_cb(
 
 API void net_nfc_client_se_unset_ese_detection_cb(void)
 {
-	net_nfc_client_se_set_ese_detection_cb(NULL, NULL);
+	se_esedetecthandler.se_ese_detected_cb = NULL;
+	se_esedetecthandler.se_ese_detected_data = NULL;
 }
 
 
@@ -1047,8 +1048,18 @@ API void net_nfc_client_se_set_transaction_event_cb(
 
 API void net_nfc_client_se_unset_transaction_event_cb(net_nfc_se_type_e type)
 {
-	net_nfc_client_se_set_transaction_event_cb(type, NULL, NULL);
-	net_nfc_client_se_set_transaction_event_cb(NET_NFC_SE_TYPE_NONE, NULL, NULL);
+	se_transeventhandler.se_type = NET_NFC_SE_TYPE_NONE;
+
+	if (type == NET_NFC_SE_TYPE_ESE)
+	{
+		se_transeventhandler.eSE_transaction_event_cb = NULL;
+		se_transeventhandler.eSE_transaction_event_data = NULL;
+	}
+	else if (type == NET_NFC_SE_TYPE_UICC)
+	{
+		se_transeventhandler.UICC_transaction_event_cb = NULL;
+		se_transeventhandler.UICC_transaction_event_data = NULL;
+	}
 }
 
 
@@ -1062,7 +1073,8 @@ API void net_nfc_client_se_set_event_cb(net_nfc_client_se_event callback,
 
 API void net_nfc_client_se_unset_event_cb(void)
 {
-	net_nfc_client_se_set_event_cb(NULL, NULL);
+	se_eventhandler.se_event_cb = NULL;
+	se_eventhandler.se_event_data = NULL;
 }
 
 
