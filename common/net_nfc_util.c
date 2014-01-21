@@ -24,6 +24,9 @@
 #include <bluetooth-api.h>
 #include <vconf.h>
 
+// multi-user header
+#include <tzplatform_config.h>
+
 // nfc-manager header
 #include "net_nfc_util_internal.h"
 #include "net_nfc_debug_internal.h"

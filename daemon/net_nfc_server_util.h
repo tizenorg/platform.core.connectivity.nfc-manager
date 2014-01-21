@@ -20,7 +20,7 @@
 #include "net_nfc_typedef_internal.h"
 
 #ifndef MESSAGE_STORAGE
-#define MESSAGE_STORAGE "/opt/share/service/nfc-manager"
+#define MESSAGE_STORAGE tzplatform_mkpath(TZ_SYS_SHARE, "service/nfc-manager")
 #endif
 
 typedef enum

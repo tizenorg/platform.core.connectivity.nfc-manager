@@ -37,6 +37,9 @@
 #include <aul.h>
 #include <Ecore_X.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_typedef.h"
 #include "net_nfc_typedef_internal.h"
 #include "net_nfc_debug_internal.h"

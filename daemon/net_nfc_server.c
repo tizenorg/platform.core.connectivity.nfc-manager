@@ -17,6 +17,9 @@
 #include <gio/gio.h>
 #include <vconf.h>
 
+/* For multi-user support */
+#include <tzplatform_config.h>
+
 #include "net_nfc_debug_internal.h"
 #include "net_nfc_util_internal.h"
 #include "net_nfc_gdbus.h"
