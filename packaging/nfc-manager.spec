@@ -1,3 +1,6 @@
+%bcond_with wayland
+%bcond_with x
+
 Name:       nfc-manager
 Summary:    NFC framework manager
 Version:    0.1.6
@@ -25,7 +28,12 @@ BuildRequires:  pkgconfig(libssl)
 BuildRequires:  pkgconfig(libcurl)
 BuildRequires:  pkgconfig(pkgmgr)
 BuildRequires:  pkgconfig(pkgmgr-info)
+%if %{with x}
 BuildRequires:  pkgconfig(ecore-x)
+%endif
+%if %{with wayland}
+BuildRequires:  pkgconfig(ecore-wayland)
+%endif
 BuildRequires:  pkgconfig(pmapi)
 BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  python
@@ -92,7 +100,17 @@ NFC manager Client library for developing NFC client applications.
 
 %build
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-%cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version} %{?ARM_DEF}
+%cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version} %{?ARM_DEF} \
+%if %{with wayland}
+         -DWAYLAND_SUPPORT=On \
+%else
+         -DWAYLAND_SUPPORT=Off \
+%endif
+%if %{with x}
+         -DX11_SUPPORT=On
+%else
+         -DX11_SUPPORT=Off
+%endif
 
 
 %install
