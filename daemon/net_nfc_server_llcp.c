@@ -1622,6 +1622,7 @@ static gboolean llcp_handle_disconnect(NetNfcGDbusLlcp *llcp,
 
 void net_nfc_server_llcp_deactivated(gpointer user_data)
 {
+	gboolean ret;
 	net_nfc_target_handle_s *handle = user_data;
 
 	if (handle != NULL)
@@ -1644,7 +1645,11 @@ void net_nfc_server_llcp_deactivated(gpointer user_data)
 	}
 
 	/* send p2p detatch */
-	net_nfc_server_p2p_detached();
+	ret = net_nfc_server_controller_async_queue_push(net_nfc_server_p2p_detached, NULL);
+
+	if (FALSE == ret)
+		NFC_ERR("can not push to controller thread");
+
 }
 
 static void llcp_simple_socket_error_cb(net_nfc_llcp_socket_t socket,
