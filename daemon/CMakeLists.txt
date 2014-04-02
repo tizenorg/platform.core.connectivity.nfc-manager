@@ -6,15 +6,21 @@ SET(NFC_DAEMON "nfc-manager-daemon")
 
 FILE(GLOB DAEMON_SRCS *.c)
 
+IF(X11_SUPPORT)
+       SET(WIN_PKG "ecore-x")
+ENDIF(X11_SUPPORT)
+IF(WAYLAND_SUPPORT)
+       SET(WIN_PKG "${WIN_PKG} ecore-wayland")
+ENDIF(WAYLAND_SUPPORT)
 IF(ARM_TARGET)
 	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
 		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
-		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi wifi-direct
-		libtzplatform-config)
+		pkgmgr pkgmgr-info capi-network-wifi pmapi wifi-direct
+		libtzplatform-config ${WIN_PKG})
 ELSE(ARM_TARGET)
-	pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
-		vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
-		pkgmgr pkgmgr-info capi-network-wifi ecore-x pmapi libtzplatform-config)
+pkg_check_modules(daemon_pkgs REQUIRED aul glib-2.0 gio-unix-2.0 security-server
+	vconf dlog tapi appsvc libcurl bluetooth-api libssl svi capi-media-wav-player
+	pkgmgr pkgmgr-info capi-network-wifi pmapi libtzplatform-config ${WIN_PKG})
 ENDIF(ARM_TARGET)
 
 FOREACH(flag ${daemon_pkgs_CFLAGS})

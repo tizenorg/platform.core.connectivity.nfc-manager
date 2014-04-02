@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "Ecore_X.h"
 
 #include "net_nfc_typedef_internal.h"
 #include "net_nfc_debug_internal.h"

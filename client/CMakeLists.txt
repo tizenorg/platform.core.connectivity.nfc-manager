@@ -8,7 +8,14 @@ SET(NFC_CLIENT "nfc")
 
 AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} CLIENT_SRCS)
 
-pkg_check_modules(client_pkgs REQUIRED security-server dlog ecore-x vconf libtzplatform-config)
+IF(X11_SUPPORT)
+       SET(WIN_PKG "ecore-x")
+ENDIF(X11_SUPPORT)
+IF(WAYLAND_SUPPORT)
+       SET(WIN_PKG "${WIN_PKG} ecore-wayland")
+ENDIF(WAYLAND_SUPPORT)
+pkg_check_modules(client_pkgs REQUIRED security-server dlog vconf libtzplatform-config ${WIN_PKG})
+
 
 FOREACH(flag ${client_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -19,6 +26,9 @@ ADD_LIBRARY(${NFC_CLIENT} SHARED ${CLIENT_SRCS})
 TARGET_LINK_LIBRARIES(${NFC_CLIENT} ${client_pkgs_LDFLAGS} nfc-common)
 SET_TARGET_PROPERTIES(${NFC_CLIENT} PROPERTIES VERSION ${FULLVER} SOVERSION ${MAJORVER})
 
+IF(X11_SUPPORT)
+    ADD_DEFINITIONS("-DHAVE_X11")
+ENDIF(X11_SUPPORT)
 FILE(GLOB CLIENT_HEADER include/*.h)
 SET(CLIENT_HEADER ${CLIENT_HEADER} ${CMAKE_SOURCE_DIR}/common/include/net_nfc_typedef.h)
 
