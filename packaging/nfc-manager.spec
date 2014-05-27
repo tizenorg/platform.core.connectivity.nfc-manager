@@ -39,7 +39,7 @@ BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  python
 BuildRequires:  python-xml
 BuildRequires:  gettext-tools
-%ifarch %arm
+%ifarch %arm aarch64
 BuildRequires:  pkgconfig(wifi-direct)
 %global ARM_DEF "-DARM_TARGET=Y"
 %endif
