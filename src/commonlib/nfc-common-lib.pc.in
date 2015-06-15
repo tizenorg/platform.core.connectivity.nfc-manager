@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}/bin
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@/nfc-common-lib
+
+Name: nfc-common-lib
+Description: NFC Common Library
+Version: 1.0
+Requires: 
+Libs: -L@LIB_INSTALL_DIR@ -lnfc-common-lib
+Cflags: -I@INCLUDE_INSTALL_DIR@/nfc-common-lib

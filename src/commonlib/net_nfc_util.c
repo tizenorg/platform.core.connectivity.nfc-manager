@@ -19,14 +19,17 @@
 #include <string.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <glib.h>
 
 // platform header
+#include "aul.h"
+#include "pkgmgr-info.h"
 #include <bluetooth-api.h>
 #include <vconf.h>
 
 // nfc-manager header
-#include "net_nfc_util_private.h"
-#include "net_nfc_debug_private.h"
+#include "net_nfc_util_internal.h"
+#include "net_nfc_debug_internal.h"
 #include "net_nfc_oem_controller.h"
 #include "net_nfc_util_defines.h"
 
@@ -82,7 +85,7 @@ static uint8_t *bt_addr = NULL;
 #define NET_NFC_MANAGER_NAME "nfc-manager-daemon"
 static const char *log_tag = LOG_CLIENT_TAG;
 extern char *__progname;
-FILE *nfc_log_file = NULL;
+FILE *nfc_log_file;
 
 const char *net_nfc_get_log_tag()
 {
@@ -103,6 +106,7 @@ void __attribute__ ((destructor)) lib_fini()
 
 void net_nfc_manager_init_log()
 {
+	struct tm *local_tm;
 	nfc_log_file = fopen(NFC_DLOG_FILE, "a+");
 	if (nfc_log_file != NULL)
 	{
@@ -110,10 +114,15 @@ void net_nfc_manager_init_log()
 		time_t rawtime;
 
 		time (&rawtime);
-		strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime));
-		fprintf(nfc_log_file, "\n%s",timeBuf);
-		fprintf(nfc_log_file, "========== log begin, pid [%d] =========", getpid());
-		fflush(nfc_log_file);
+		local_tm = localtime(&rawtime);
+
+		if(local_tm != NULL)
+		{
+			strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", local_tm);
+			fprintf(nfc_log_file, "\n%s",timeBuf);
+			fprintf(nfc_log_file, "========== log begin, pid [%d] =========", getpid());
+			fflush(nfc_log_file);
+		}
 	}
 	else
 	{
@@ -123,18 +132,24 @@ void net_nfc_manager_init_log()
 
 void net_nfc_manager_fini_log()
 {
+	struct tm *local_tm;
 	if (nfc_log_file != NULL)
 	{
 		char timeBuf[50];
 		time_t rawtime;
 
 		time (&rawtime);
-		strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", localtime(&rawtime));
-		fprintf(nfc_log_file, "\n%s",timeBuf);
-		fprintf(nfc_log_file, "=========== log end, pid [%d] ==========", getpid());
-		fflush(nfc_log_file);
-		fclose(nfc_log_file);
-		nfc_log_file = NULL;
+		local_tm = localtime(&rawtime);
+
+		if(local_tm != NULL)
+		{
+			strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", local_tm);
+			fprintf(nfc_log_file, "\n%s",timeBuf);
+			fprintf(nfc_log_file, "=========== log end, pid [%d] ==========", getpid());
+			fflush(nfc_log_file);
+			fclose(nfc_log_file);
+			nfc_log_file = NULL;
+		}
 	}
 }
 
@@ -142,17 +157,17 @@ NET_NFC_EXPORT_API void __net_nfc_util_free_mem(void **mem, char *filename, unsi
 {
 	if (mem == NULL)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, Invalid parameter in mem free util, mem is NULL", filename, line);
+		SECURE_LOGD("FILE: %s, LINE:%d, Invalid parameter in mem free util, mem is NULL", filename, line);
 		return;
 	}
 
 	if (*mem == NULL)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, Invalid Parameter in mem free util, *mem is NULL", filename, line);
+		SECURE_LOGD("FILE: %s, LINE:%d, Invalid Parameter in mem free util, *mem is NULL", filename, line);
 		return;
 	}
 
-	free(*mem);
+	g_free(*mem);
 	*mem = NULL;
 }
 
@@ -160,20 +175,20 @@ NET_NFC_EXPORT_API void __net_nfc_util_alloc_mem(void **mem, int size, char *fil
 {
 	if (mem == NULL || size <= 0)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, Invalid parameter in mem alloc util, mem [%p], size [%d]", filename, line, mem, size);
+		SECURE_LOGD("FILE: %s, LINE:%d, Invalid parameter in mem alloc util, mem [%p], size [%d]", filename, line, mem, size);
 		return;
 	}
 
 	if (*mem != NULL)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, WARNING: Pointer is not NULL, mem [%p]", filename, line, *mem);
+		SECURE_LOGD("FILE: %s, LINE:%d, WARNING: Pointer is not NULL, mem [%p]", filename, line, *mem);
 	}
 
-	*mem = calloc(1, size);
+	*mem = g_malloc0(size);
 
 	if (*mem == NULL)
 	{
-		DEBUG_ERR_MSG("FILE: %s, LINE:%d, Allocation is failed, size [%d]", filename, line, size);
+		SECURE_LOGD("FILE: %s, LINE:%d, Allocation is failed, size [%d]", filename, line, size);
 	}
 }
 
@@ -181,24 +196,36 @@ NET_NFC_EXPORT_API void __net_nfc_util_strdup(char **output, const char *origin,
 {
 	if (output == NULL || origin == NULL)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, Invalid parameter in strdup, output [%p], origin [%p]", filename, line, output, origin);
+		SECURE_LOGD("FILE: %s, LINE:%d, Invalid parameter in strdup, output [%p], origin [%p]", filename, line, output, origin);
 		return;
 	}
 
 	if (*output != NULL)
 	{
-		DEBUG_MSG("FILE: %s, LINE:%d, WARNING: Pointer is not NULL, mem [%p]", filename, line, *output);
+		SECURE_LOGD("FILE: %s, LINE:%d, WARNING: Pointer is not NULL, mem [%p]", filename, line, *output);
 	}
 
-	*output = strdup(origin);
+	*output = g_strdup(origin);
 
 	if (*output == NULL)
 	{
-		DEBUG_ERR_MSG("FILE: %s, LINE:%d, strdup failed", filename, line);
+		SECURE_LOGD("FILE: %s, LINE:%d, strdup failed", filename, line);
 	}
 }
 
-NET_NFC_EXPORT_API bool net_nfc_util_alloc_data(data_s *data, uint32_t length)
+NET_NFC_EXPORT_API data_s *net_nfc_util_create_data(uint32_t length)
+{
+	data_s *data;
+
+	_net_nfc_util_alloc_mem(data, sizeof(*data));
+	if (length > 0) {
+		net_nfc_util_init_data(data, length);
+	}
+
+	return data;
+}
+
+NET_NFC_EXPORT_API bool net_nfc_util_init_data(data_s *data, uint32_t length)
 {
 	if (data == NULL || length == 0)
 		return false;
@@ -212,91 +239,66 @@ NET_NFC_EXPORT_API bool net_nfc_util_alloc_data(data_s *data, uint32_t length)
 	return true;
 }
 
-NET_NFC_EXPORT_API bool net_nfc_util_duplicate_data(data_s *dest, net_nfc_data_s *src)
+NET_NFC_EXPORT_API data_s *net_nfc_util_duplicate_data(data_s *src)
 {
+	data_s *data;
+
+	if (src == NULL || src->length == 0)
+		return false;
+
+	data = net_nfc_util_create_data(src->length);
+	if (data != NULL) {
+		memcpy(data->buffer, src->buffer, data->length);
+	}
+
+	return data;
+}
+
+NET_NFC_EXPORT_API bool net_nfc_util_append_data(data_s *dest, data_s *src)
+{
+	data_s *data;
+
 	if (dest == NULL || src == NULL || src->length == 0)
 		return false;
 
-	if (net_nfc_util_alloc_data(dest, src->length) == false)
-		return false;
+	data = net_nfc_util_create_data(dest->length + src->length);
+	if (data != NULL) {
+		if (dest->length > 0) {
+			memcpy(data->buffer, dest->buffer, dest->length);
+		}
+		memcpy(data->buffer + dest->length, src->buffer, src->length);
 
-	memcpy(dest->buffer, src->buffer, dest->length);
+		net_nfc_util_clear_data(dest);
+		net_nfc_util_init_data(dest, data->length);
+		memcpy(dest->buffer, data->buffer, data->length);
+
+		net_nfc_util_free_data(data);
+	}
 
 	return true;
 }
 
-NET_NFC_EXPORT_API void net_nfc_util_free_data(data_s *data)
-{
-	if (data == NULL || data->buffer == NULL)
-		return;
-
-	_net_nfc_util_free_mem(data->buffer);
-}
-
-NET_NFC_EXPORT_API void net_nfc_util_mem_free_detail_msg(int msg_type, int message, void *data)
+NET_NFC_EXPORT_API void net_nfc_util_clear_data(data_s *data)
 {
 	if (data == NULL)
 		return;
 
-	if (msg_type == NET_NFC_UTIL_MSG_TYPE_REQUEST)
-	{
-		_net_nfc_util_free_mem(data);
+	if (data->buffer != NULL) {
+		_net_nfc_util_free_mem(data->buffer);
+		data->buffer = NULL;
 	}
-	else if (msg_type == NET_NFC_UTIL_MSG_TYPE_RESPONSE)
-	{
-		switch (message)
-		{
-		case NET_NFC_MESSAGE_READ_NDEF :
-			{
-				net_nfc_response_read_ndef_t *msg = (net_nfc_response_read_ndef_t *)data;
-				_net_nfc_util_free_mem(msg->data.buffer);
-			}
-			break;
-		case NET_NFC_MESSAGE_TRANSCEIVE :
-			{
-				net_nfc_response_transceive_t *msg = (net_nfc_response_transceive_t *)data;
-				_net_nfc_util_free_mem(msg->data.buffer);
-			}
-			break;
-		case NET_NFC_MESSAGE_TAG_DISCOVERED :
-			{
-				net_nfc_response_tag_discovered_t *msg = (net_nfc_response_tag_discovered_t *)data;
-				_net_nfc_util_free_mem(msg->target_info_values.buffer);
-				_net_nfc_util_free_mem(msg->raw_data.buffer);
-			}
-			break;
 
-		case NET_NFC_MESSAGE_LLCP_RECEIVE :
-			{
-				net_nfc_response_receive_socket_t *msg = (net_nfc_response_receive_socket_t *)data;
-				_net_nfc_util_free_mem(msg->data.buffer);
-			}
-			break;
+	data->length = 0;
+}
 
-		case NET_NFC_MESSAGE_P2P_RECEIVE :
-			{
-				net_nfc_response_p2p_receive_t *msg = (net_nfc_response_p2p_receive_t *)data;
-				_net_nfc_util_free_mem(msg->data.buffer);
-			}
-			break;
+NET_NFC_EXPORT_API void net_nfc_util_free_data(data_s *data)
+{
+	if (data == NULL)
+		return;
 
-		case NET_NFC_MESSAGE_SEND_APDU_SE :
-			{
-				net_nfc_response_send_apdu_t *msg = (net_nfc_response_send_apdu_t *)data;
-				_net_nfc_util_free_mem(msg->data.buffer);
-			}
-			break;
+	net_nfc_util_clear_data(data);
 
-		default :
-			break;
-		}
-
-		_net_nfc_util_free_mem(data);
-	}
-	else
-	{
-		DEBUG_MSG("unknown message type");
-	}
+	_net_nfc_util_free_mem(data);
 }
 
 net_nfc_conn_handover_carrier_state_e net_nfc_util_get_cps(net_nfc_conn_handover_carrier_type_e carrier_type)
@@ -348,6 +350,9 @@ net_nfc_conn_handover_carrier_state_e net_nfc_util_get_cps(net_nfc_conn_handover
 
 	return cps;
 }
+
+#define BLUETOOTH_ADDRESS_LENGTH	6
+#define HIDDEN_BT_ADDR_FILE		"/opt/etc/.bd_addr"
 
 uint8_t *net_nfc_util_get_local_bt_address()
 {
@@ -503,4 +508,248 @@ const char *net_nfc_util_get_schema_string(int index)
 		return NULL;
 	else
 		return schema[index];
+}
+
+#define MAX_HANDLE	65535
+#define NEXT_HANDLE(__x) ((__x) == MAX_HANDLE ? 1 : ((__x) + 1))
+
+static uint32_t next_handle = 1;
+static GHashTable *handle_table;
+
+static void *_get_memory_address(uint32_t handle)
+{
+	return g_hash_table_lookup(handle_table,
+		(gconstpointer)handle);
+}
+
+uint32_t net_nfc_util_create_memory_handle(void *address)
+{
+	uint32_t handle;
+
+	if (handle_table == NULL) {
+		handle_table = g_hash_table_new(g_int_hash, g_int_equal);
+	}
+
+	g_assert(g_hash_table_size(handle_table) < MAX_HANDLE);
+
+	g_hash_table_insert(handle_table, (gpointer)next_handle,
+		(gpointer)address);
+
+	handle = next_handle;
+
+	/* find next available handle */
+	do {
+		next_handle = NEXT_HANDLE(next_handle);
+	} while (_get_memory_address(next_handle) != NULL);
+
+	return handle;
+}
+
+void *net_nfc_util_get_memory_address(uint32_t handle)
+{
+	void *address;
+
+	if (handle_table == NULL || handle == 0 || handle > MAX_HANDLE)
+		return NULL;
+
+	address = _get_memory_address(handle);
+
+	return address;
+}
+
+void net_nfc_util_destroy_memory_handle(uint32_t handle)
+{
+	if (handle_table == NULL || handle == 0 || handle > MAX_HANDLE)
+		return;
+
+	g_hash_table_remove(handle_table, (gconstpointer)handle);
+}
+
+#define IS_HEX(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'F') || \
+	((c) >= 'a' && (c) <= 'f'))
+
+bool net_nfc_util_aid_check_validity(const char *aid)
+{
+	const char *temp = aid;
+	bool asterisk = false;
+
+	if (aid == NULL || strlen(aid) == 0) {
+		return false;
+	}
+
+	while (*temp != '\0') {
+		if (asterisk == true) {
+			/* asterisk sould be placed at last */
+			return false;
+		}
+
+		if (IS_HEX(*temp) == false) {
+			if (*temp == '*') {
+				asterisk = true;
+			} else {
+				/* wrong character */
+				return false;
+			}
+		}
+
+		temp++;
+	}
+
+	return true;
+}
+
+bool net_nfc_util_aid_is_prefix(const char *aid)
+{
+	size_t len;
+
+	if (net_nfc_util_aid_check_validity(aid) == false) {
+		return false;
+	}
+
+	len = strlen(aid);
+
+	return (aid[len - 1] == '*');
+}
+
+bool net_nfc_util_aid_is_matched(const char *aid_criteria,
+	const char *aid_target)
+{
+	const char *criteria = aid_criteria;
+	const char *target = aid_target;
+	bool is_prefix;
+	bool result;
+
+	if (net_nfc_util_aid_check_validity(criteria) == false) {
+		return false;
+	}
+
+	if (net_nfc_util_aid_check_validity(target) == false) {
+		return false;
+	}
+
+	is_prefix = net_nfc_util_aid_is_prefix(target);
+
+	while (true) {
+		if (*criteria == *target) {
+			if (*criteria == '\0') {
+				result = true;
+				break;
+			}
+		} else if (*criteria == '*') {
+			if (is_prefix == true) {
+				/* different prefix */
+				result = false;
+				break;
+			} else {
+				/* prefix matched */
+				result = true;
+				break;
+			}
+		} else {
+			result = false;
+			break;
+		}
+
+		criteria++;
+		target++;
+	}
+
+	return result;
+}
+
+bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len)
+{
+	pkgmgrinfo_appinfo_h appinfo = NULL;
+	char *temp = NULL;
+	char package[1024];
+	int ret;
+	bool result = false;
+
+	/* get pkgid id from pid */
+	ret = aul_app_get_pkgname_bypid(pid, package, sizeof(package));
+	if (ret < 0) {
+		DEBUG_ERR_MSG("aul_app_get_pkgname_bypid failed [%d]", ret);
+
+		goto END;
+	}
+
+	ret = pkgmgrinfo_appinfo_get_appinfo(package, &appinfo);
+	if (ret < 0) {
+		DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_appinfo failed, [%d]", ret);
+
+		goto END;
+	}
+
+	ret = pkgmgrinfo_appinfo_get_pkgid(appinfo, &temp);
+	if (ret < 0) {
+		DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_pkgid failed, [%d]", ret);
+
+		goto END;
+	}
+
+	result = (snprintf(pkgid, len, "%s", temp) > 0);
+
+END :
+	if (appinfo != NULL) {
+		pkgmgrinfo_appinfo_destroy_appinfo(appinfo);
+	}
+
+	return result;
+}
+
+#define TO_BINARY(x) (((x) >= '0' && (x) <= '9') ? ((x) - '0') : (((x) >= 'A' && (x) <= 'F') ? ((x) - 'A' + 10) : (((x) >= 'a' && (x) <= 'f') ? ((x) - 'a' + 10) : 0)))
+
+bool net_nfc_util_hex_string_to_binary(const char *str, data_s *result)
+{
+	size_t len, i;
+
+	if (str == NULL || result == NULL) {
+		return false;
+	}
+
+	len = strlen(str);
+	if (len < 2) {
+		return false;
+	}
+
+	for (i = 0; i < len; i++) {
+		if (IS_HEX(str[i]) == false) {
+			return false;
+		}
+	}
+
+	len /= 2;
+
+	if (net_nfc_util_init_data(result, len) == false) {
+		return false;
+	}
+
+	for (i = 0; i < len; i++) {
+		result->buffer[i] = TO_BINARY(str[i << 1]) << 4;
+		result->buffer[i] |= TO_BINARY(str[(i << 1) + 1]);
+	}
+
+	return true;
+}
+
+bool net_nfc_util_binary_to_hex_string(data_s *data, char *out_buf, uint32_t max_len)
+{
+	int current = 0;
+	uint8_t *buffer;
+	size_t len;
+
+	if (data == NULL || data->buffer == NULL || data->length == 0 ||
+		out_buf == NULL || max_len == 0)
+		return false;
+
+	buffer = data->buffer;
+	len = data->length;
+
+	while (len > 0 && current < max_len) {
+		current += snprintf(out_buf + current, max_len - current,
+			"%02X", *(buffer++));
+		len--;
+	}
+
+	return true;
 }
