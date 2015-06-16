@@ -96,7 +96,7 @@ LDFLAGS="$LDFLAGS" cmake . \
 		-DTIZEN_ENGINEER_MODE=1 \
 		-DCMAKE_INSTALL_PREFIX=%{_prefix} \
 		-DTIZEN_TELEPHONY_ENABLED=1 \
-%ifarch aarch64
+%ifarch aarch64 x86_64
 		-DTIZEN_ARCH_64=1 \
 %endif
 
