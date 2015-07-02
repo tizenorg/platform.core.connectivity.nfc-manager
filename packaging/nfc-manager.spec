@@ -119,19 +119,15 @@ install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/nfc-client-li
 /sbin/ldconfig
 
 mkdir -p -m 700 /opt/usr/data/nfc-manager-daemon
-/usr/bin/chsmack -a nfc-manager /opt/usr/data/nfc-manager-daemon
 chown system:system /opt/usr/data/nfc-manager-daemon
 
 mkdir -p -m 744 /opt/usr/share/nfc_debug
-/usr/bin/chsmack -a nfc-manager /opt/usr/share/nfc_debug
 chown system:system /opt/usr/share/nfc_debug
 
 mkdir -p -m 744 /opt/usr/share/nfc-manager-daemon
-/usr/bin/chsmack -a nfc-manager /opt/usr/share/nfc-manager-daemon
 chown system:system /opt/usr/share/nfc-manager-daemon
 
 mkdir -p -m 744 /opt/usr/share/nfc-manager-daemon/message
-/usr/bin/chsmack -a nfc-manager /opt/usr/share/nfc-manager-daemon/message
 chown system:system /opt/usr/share/nfc-manager-daemon/message
 
 systemctl daemon-reload

@@ -9,7 +9,6 @@ Type=simple
 ExecStart=/usr/bin/nfc-manager-daemon --daemon
 KillSignal=SIGKILL
 MemoryLimit=30M
-SmackProcessLabel=nfc-manager
 
 [Install]
 WantedBy=multi-user.target
