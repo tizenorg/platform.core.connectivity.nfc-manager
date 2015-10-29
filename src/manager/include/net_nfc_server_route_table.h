@@ -18,11 +18,9 @@
 #define __NET_NFC_SERVER_ROUTE_TABLE_H__
 
 #include <gio/gio.h>
+#include <vconf.h>
 
 #include "net_nfc_typedef_internal.h"
-
-#define VCONFKEY_NFC_PAYMENT_HANDLERS "db/nfc/payment_handlers"
-#define VCONFKEY_NFC_OTHER_HANDLERS "db/nfc/other_handlers"
 
 typedef struct _aid_info_t
 {

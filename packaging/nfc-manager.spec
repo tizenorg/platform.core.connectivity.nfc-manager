@@ -138,8 +138,6 @@ fi
 
 %post -n nfc-client-lib
 /sbin/ldconfig
-vconftool set -t string db/nfc/payment_handlers "" -u 200 -g 5000 -f -s tizen::vconf::nfc::admin
-vconftool set -t string db/nfc/other_handlers "" -u 200 -g 5000 -f -s tizen::vconf::nfc::admin
 
 /usr/sbin/setcap cap_mac_override+ep /usr/bin/nfc-manager-daemon
 
