@@ -84,6 +84,6 @@ ELSE (TIZEN_ARCH_64)
 ENDIF(TIZEN_ARCH_64)
 
 FOREACH(hfile ${COMMON_LIB_HEADER})
-        INSTALL(FILES ${hfile} DESTINATION include/nfc-common-lib)
+        INSTALL(FILES ${hfile} DESTINATION include)
 ENDFOREACH(hfile)
 

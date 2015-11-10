@@ -196,4 +196,4 @@ systemctl daemon-reload
 %manifest nfc-common-lib-devel.manifest
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/nfc-common-lib.pc
-%{_includedir}/nfc-common-lib/*.h
+%{_includedir}/*.h
