@@ -30,6 +30,7 @@
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 
+#include <bundle_internal.h>
 #include "appsvc.h"
 #include "aul.h"
 #include "vconf.h"
