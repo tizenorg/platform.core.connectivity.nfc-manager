@@ -6,7 +6,6 @@ Group:      Network & Connectivity/NFC
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    nfc-manager.service
-Requires:   sys-assert
 BuildRequires: cmake
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
