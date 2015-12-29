@@ -289,6 +289,9 @@ static data_s *_get_barcode_from_target_info(net_nfc_current_target_info_s *targ
 		pos++;
 
 		str = g_new0(gchar, length + 1);
+		if(str == NULL)
+			return NULL;
+
 		memcpy(str, pos, length);
 
 		DEBUG_CLIENT_MSG("key = [%s]", str);
@@ -302,7 +305,10 @@ static data_s *_get_barcode_from_target_info(net_nfc_current_target_info_s *targ
 		{
 			data = (data_s *)calloc(1, sizeof(data_s));
 			if(data == NULL)
+			{
+				g_free(str);
 				return NULL;
+			}
 
 			data->length = length;
 
@@ -310,6 +316,7 @@ static data_s *_get_barcode_from_target_info(net_nfc_current_target_info_s *targ
 			if(data->buffer == NULL)
 			{
 				free(data);
+				g_free(str);
 				return NULL;
 			}
 
@@ -317,6 +324,9 @@ static data_s *_get_barcode_from_target_info(net_nfc_current_target_info_s *targ
 
 			break;
 		}
+
+		g_free(str);
+		str = NULL;
 
 		pos += length;
 		i++;
