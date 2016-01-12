@@ -10,7 +10,6 @@
     -->
     <method name="SetActive">
       <arg type="b" name="is_active" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -18,7 +17,6 @@
       GetServerState
     -->
     <method name="GetServerState">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="state" direction="out" />
     </method>
@@ -36,7 +34,6 @@
       IsConnected
     -->
     <method name="IsTagConnected">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="i" name="dev_type" direction="out" />
@@ -46,7 +43,6 @@
       GetInfo
     -->
     <method name="GetCurrentTagInfo">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="u" name="handle" direction="out" />
@@ -64,7 +60,6 @@
       GetBarcode
     -->
     <method name="GetBarcode">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="barcode" direction="out" />
     </method>
@@ -73,7 +68,6 @@
       GetTagetHandle
     -->
     <method name="GetCurrentTargetHandle">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="b" name="is_connected" direction="out" />
       <arg type="u" name="handle" direction="out" />
@@ -110,7 +104,6 @@
     -->
     <method name="Read">
       <arg type="u" name="handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
     </method>
@@ -121,7 +114,6 @@
     <method name="Write">
       <arg type="u" name="handle" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -130,7 +122,6 @@
     -->
     <method name="MakeReadOnly">
       <arg type="u" name="handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -140,7 +131,6 @@
     <method name="Format">
       <arg type="u" name="handle" direction="in" />
       <arg type="a(y)" name="key" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
   </interface>
@@ -151,7 +141,6 @@
     -->
     <method name="Config">
       <arg type="(qqyy)" name="config" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -166,7 +155,6 @@
       <arg type="i" name="type" direction="in" />
       <arg type="y" name="sap" direction="in" />
       <arg type="s" name="service_name" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -177,7 +165,6 @@
     <method name="Accept">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -187,7 +174,6 @@
     <method name="Reject">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -201,7 +187,6 @@
       <arg type="y" name="rw" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="s" name="service_name" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -216,7 +201,6 @@
       <arg type="y" name="rw" direction="in" />
       <arg type="i" name="type" direction="in" />
       <arg type="y" name="sap" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -228,7 +212,6 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -241,7 +224,6 @@
       <arg type="u" name="client_socket" direction="in" />
       <arg type="y" name="sap" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -253,7 +235,6 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
       <arg type="u" name="request_length" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
     </method>
@@ -265,7 +246,6 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
       <arg type="u" name="request_length" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="y" name="sap" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
@@ -277,7 +257,6 @@
     <method name="Close">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -288,7 +267,6 @@
     <method name="Disconnect">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="client_socket" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="client_socket" direction="out" />
     </method>
@@ -320,7 +298,6 @@
       <arg type="i" name="type" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
       <arg type="u" name="handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -351,7 +328,6 @@
     <method name="Set">
       <arg type="i" name="state" direction="in" />
       <arg type="i" name="focus_state" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -359,7 +335,6 @@
       Get
     -->
     <method name="Get">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="i" name="state" direction="out" />
     </method>
@@ -371,7 +346,6 @@
     -->
     <method name="Set">
       <arg type="i" name="type" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -379,7 +353,6 @@
       Get
     -->
     <method name="Get">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="i" name="type" direction="out" />
     </method>
@@ -389,7 +362,6 @@
     -->
     <method name="SetCardEmulation">
       <arg type="i" name="mode" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -397,7 +369,6 @@
       GetCardEmulation
     -->
     <method name="GetCardEmulation">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="i" name="type" direction="out" />
     </method>
@@ -407,7 +378,6 @@
     -->
     <method name="OpenSecureElement">
       <arg type="i" name="type" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="handle" direction="out" />
     </method>
@@ -417,7 +387,6 @@
     -->
     <method name="CloseSecureElement">
       <arg type="u" name="handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -426,7 +395,6 @@
     -->
     <method name="GetAtr">
       <arg type="u" name="handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="atr" direction="out" />
     </method>
@@ -437,7 +405,6 @@
     <method name="SendAPDU">
       <arg type="u" name="handle" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="response" direction="out" />
     </method>
@@ -447,7 +414,6 @@
     -->
     <method name="SetTransactionFgDispatch">
       <arg type="i" name="mode" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -458,7 +424,6 @@
        <arg type="u" name="switch_on" direction="in" />
        <arg type="u" name="switch_off" direction="in" />
        <arg type="u" name="battery_off" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -467,7 +432,6 @@
     -->
     <method name="CheckTransactionPermission">
       <arg type="a(y)" name="aid" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -477,7 +441,6 @@
     <method name="IsActivatedAidHandler">
       <arg type="u" name="type" direction="in" />
       <arg type="s" name="aid" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="b" name="activated" direction="out" />
     </method>
@@ -488,7 +451,6 @@
     <method name="IsActivatedCategoryHandler">
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="category" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="b" name="activated" direction="out" />
     </method>
@@ -499,7 +461,6 @@
     <method name="GetRegisteredAids">
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="category" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(sb)" name="aids" direction="out" />
     </method>
@@ -511,7 +472,6 @@
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="category" direction="in" />
       <arg type="s" name="aid" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -522,7 +482,6 @@
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="category" direction="in" />
       <arg type="s" name="aid" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -532,7 +491,6 @@
     <method name="UnregisterAids">
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="category" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -546,7 +504,6 @@
       <arg type="u" name="category" direction="in" />
       <arg type="b" name="unlock" direction="in" />
       <arg type="u" name="power" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -556,7 +513,6 @@
     <method name="RemoveRouteAid">
       <arg type="s" name="package" direction="in" />
       <arg type="s" name="aid" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -565,7 +521,6 @@
     -->
     <method name="RemovePackageAids">
       <arg type="s" name="package" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -574,7 +529,6 @@
     -->
     <method name="GetRegisteredHandlers">
       <arg type="u" name="category" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(s)" name="packages" direction="out" />
     </method>
@@ -629,7 +583,6 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="dev_type" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="a(y)" name="resp_data" direction="out" />
     </method>
@@ -641,7 +594,6 @@
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="dev_type" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
   </interface>
@@ -653,7 +605,6 @@
     <method name="Request">
       <arg type="u" name="handle" direction="in" />
       <arg type="i" name="type" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="i" name="carrier_type" direction="out" />
       <arg type="a(y)" name="handover_data" direction="out" />
@@ -682,7 +633,6 @@
       SimTest
     -->
     <method name="SimTest">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -692,7 +642,6 @@
     <method name="PrbsTest">
       <arg type="u" name="tech" direction="in" />
       <arg type="u" name="rate" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -700,7 +649,6 @@
       GetFirmwareVersion
     -->
     <method name="GetFirmwareVersion">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="s" name="version" direction="out" />
     </method>
@@ -712,7 +660,6 @@
       <arg type="u" name="mode" direction="in" />
       <arg type="u" name="reg_id" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -720,7 +667,6 @@
       eseTest
     -->
     <method name="EseTest">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -730,7 +676,6 @@
     <method name="SetSeTechType">
       <arg type="u" name="type" direction="in" />
       <arg type="u" name="tech" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
   </interface>
@@ -743,7 +688,6 @@
       <arg type="u" name="sap" direction="in" />
       <arg type="s" name="san" direction="in" />
       <arg type="u" name="user_data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -753,7 +697,6 @@
     <method name="ServerUnregister">
       <arg type="u" name="sap" direction="in" />
       <arg type="s" name="san" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -765,7 +708,6 @@
       <arg type="u" name="sap" direction="in" />
       <arg type="s" name="san" direction="in" />
       <arg type="u" name="user_data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -777,7 +719,6 @@
       <arg type="u" name="sap" direction="in" />
       <arg type="s" name="san" direction="in" />
       <arg type="u" name="user_data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -788,7 +729,6 @@
       <arg type="u" name="snep_handle" direction="in" />
       <arg type="u" name="type" direction="in" />
       <arg type="a(y)" name="ndef_msg" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
       <arg type="u" name="type" direction="out" />
       <arg type="a(y)" name="data" direction="out" />
@@ -800,7 +740,6 @@
     <method name="StopSnep">
       <arg type="u" name="handle" direction="in" />
       <arg type="u" name="snep_handle" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -821,7 +760,6 @@
        StartHceHandler
     -->
     <method name="StartHceHandler">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -829,7 +767,6 @@
        StopHceHandler
     -->
     <method name="StopHceHandler">
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 
@@ -839,7 +776,6 @@
     <method name="ResponseApdu">
       <arg type="u" name="handle" direction="in" />
       <arg type="a(y)" name="data" direction="in" />
-      <arg type="a(y)" name="privilege" direction="in" />
       <arg type="i" name="result" direction="out" />
     </method>
 

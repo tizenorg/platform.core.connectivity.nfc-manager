@@ -27,8 +27,6 @@ void net_nfc_client_gdbus_init(void);
 
 void net_nfc_client_gdbus_deinit(void);
 
-GVariant *net_nfc_client_gdbus_get_privilege();
-
 #ifdef __cplusplus
 }
 #endif

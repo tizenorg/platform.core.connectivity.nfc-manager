@@ -260,7 +260,6 @@ net_nfc_error_e net_nfc_client_ndef_read(net_nfc_target_handle_h handle,
 
 	net_nfc_gdbus_ndef_call_read(ndef_proxy,
 			GPOINTER_TO_UINT(handle),
-			net_nfc_client_gdbus_get_privilege(),
 			NULL,
 			ndef_call_read,
 			func_data);
@@ -300,7 +299,6 @@ net_nfc_error_e net_nfc_client_ndef_read_sync(net_nfc_target_handle_h handle,
 
 	if (net_nfc_gdbus_ndef_call_read_sync(ndef_proxy,
 					GPOINTER_TO_UINT(handle),
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					&out_data,
 					NULL,
@@ -359,7 +357,6 @@ net_nfc_error_e net_nfc_client_ndef_write(net_nfc_target_handle_h handle,
 	net_nfc_gdbus_ndef_call_write(ndef_proxy,
 				GPOINTER_TO_UINT(handle),
 				arg_data,
-				net_nfc_client_gdbus_get_privilege(),
 				NULL,
 				ndef_call_write,
 				func_data);
@@ -400,7 +397,6 @@ net_nfc_error_e net_nfc_client_ndef_write_sync(net_nfc_target_handle_h handle,
 	if (net_nfc_gdbus_ndef_call_write_sync(ndef_proxy ,
 					GPOINTER_TO_UINT(handle),
 					arg_data,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -456,7 +452,6 @@ net_nfc_error_e net_nfc_client_ndef_make_read_only(
 
 	net_nfc_gdbus_ndef_call_make_read_only(ndef_proxy,
 				GPOINTER_TO_UINT(handle),
-				net_nfc_client_gdbus_get_privilege(),
 				NULL,
 				ndef_call_make_read_only,
 				func_data);
@@ -496,7 +491,6 @@ net_nfc_error_e net_nfc_client_ndef_make_read_only_sync(
 
 	if (net_nfc_gdbus_ndef_call_make_read_only_sync(ndef_proxy,
 					GPOINTER_TO_UINT(handle),
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -553,7 +547,6 @@ net_nfc_error_e net_nfc_client_ndef_format(net_nfc_target_handle_h handle,
 	net_nfc_gdbus_ndef_call_format(ndef_proxy ,
 				GPOINTER_TO_UINT(handle),
 				arg_data,
-				net_nfc_client_gdbus_get_privilege(),
 				NULL,
 				ndef_call_format,
 				func_data);
@@ -595,7 +588,6 @@ net_nfc_error_e net_nfc_client_ndef_format_sync(
 	if (net_nfc_gdbus_ndef_call_format_sync(ndef_proxy ,
 					GPOINTER_TO_UINT(handle),
 					arg_data,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)

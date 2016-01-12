@@ -46,11 +46,6 @@ void __attribute__ ((destructor)) lib_fini()
 {
 }
 
-GVariant *net_nfc_client_gdbus_get_privilege()
-{
-	return net_nfc_util_gdbus_buffer_to_variant(NULL, 0);
-}
-
 void net_nfc_client_gdbus_init(void)
 {
 #if 0		/* change gdbus init time */

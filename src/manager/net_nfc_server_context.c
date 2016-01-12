@@ -28,6 +28,11 @@
 #include "net_nfc_server.h"
 #include "net_nfc_server_context_internal.h"
 
+#ifdef USE_CYNARA
+#include "cynara-client.h"
+#include "cynara-creds-gdbus.h"
+#include "cynara-session.h"
+#endif
 
 static GList *client_detached_cbs;
 
@@ -101,20 +106,103 @@ void net_nfc_server_gdbus_unregister_on_client_detached_cb(
 	client_detached_cbs = g_list_remove(client_detached_cbs, cb);
 }
 
-/* TODO */
-bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation,
-	GVariant *privilege,
-	const char *object,
-	const char *right)
+#ifdef USE_CYNARA
+static bool _get_credentials(GDBusMethodInvocation *invocation, net_nfc_privilege_e _privilege)
 {
+	int ret = 0;
+	int pid = 0;
+	char *user;
+	char *client;
+	char *client_session;
+	char *privilege = NULL;
+	cynara *p_cynara = NULL;
+	const char *sender_unique_name;
+	GDBusConnection *connection;
+
+	connection = g_dbus_method_invocation_get_connection(invocation);
+	sender_unique_name = g_dbus_method_invocation_get_sender(invocation);
+
+	ret = cynara_initialize(&p_cynara, NULL);
+	if (ret != CYNARA_API_SUCCESS) {
+		DEBUG_SERVER_MSG("cynara_initialize() failed");
+		return false;
+	}
+
+	ret =	cynara_creds_gdbus_get_pid(connection, sender_unique_name, &pid);
+	if (ret != CYNARA_API_SUCCESS) {
+		DEBUG_SERVER_MSG("cynara_creds_gdbus_get_pid() failed");
+		return false;
+	}
+
+	ret = cynara_creds_gdbus_get_user(connection, sender_unique_name, USER_METHOD_DEFAULT, &user);
+	if (ret != CYNARA_API_SUCCESS) {
+		DEBUG_SERVER_MSG("cynara_creds_gdbus_get_user() failed");
+		return false;
+	}
+
+	ret = cynara_creds_gdbus_get_client(connection, sender_unique_name, CLIENT_METHOD_DEFAULT, &client);
+	if (ret != CYNARA_API_SUCCESS) {
+		DEBUG_SERVER_MSG("cynara_creds_gdbus_get_client() failed");
+		return false;
+	}
+
+	switch (_privilege)
+	{
+	case NET_NFC_PRIVILEGE_NFC:
+		privilege = "http://tizen.org/privilege/nfc";
+	break;
+
+	case NET_NFC_PRIVILEGE_NFC_ADMIN :
+		privilege = "http://tizen.org/privilege/nfc.admin";
+	break;
+
+	case NET_NFC_PRIVILEGE_NFC_TAG :
+		privilege = "http://tizen.org/privilege/nfc";
+	break;
+
+	case NET_NFC_PRIVILEGE_NFC_P2P :
+		privilege = "http://tizen.org/privilege/nfc";
+	break;
+
+	case NET_NFC_PRIVILEGE_NFC_CARD_EMUL :
+		privilege = "http://tizen.org/privilege/nfc.cardemulation";
+	break;
+	default :
+		DEBUG_SERVER_MSG("Undifined privilege");
+		return false;
+	break;
+	}
+
+	DEBUG_SERVER_MSG("user :%s , client :%s ,unique_name : %s, pid() : %d, privilege : %d",
+		user, client, sender_unique_name, pid, privilege);
+
+	client_session = cynara_session_from_pid(pid);
+
+
+	ret = cynara_check(p_cynara, client, client_session, user, privilege);
+	if (ret == CYNARA_API_ACCESS_ALLOWED)
+		INFO_MSG("cynara PASS");
+
+	return (ret == CYNARA_API_ACCESS_ALLOWED) ? true : false;
+}
+#endif
+
+bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation, net_nfc_privilege_e privilege)
+{
+	bool ret = true;
+
 	const char *id = g_dbus_method_invocation_get_sender(invocation);
 
-	INFO_MSG("check the id of the gdbus sender =  [%s]",id);
+	INFO_MSG("check the id of the gdbus sender = [%s]", id);
 
 	net_nfc_server_gdbus_add_client_context(id,
 			NET_NFC_CLIENT_ACTIVE_STATE);
 
-	return true;
+#ifdef USE_CYNARA
+	ret = _get_credentials(invocation, privilege);
+#endif
+
+	return ret;
 }
 
 size_t net_nfc_server_gdbus_get_client_count_no_lock()

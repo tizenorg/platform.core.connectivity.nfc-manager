@@ -436,10 +436,7 @@ static gboolean hce_handle_start_hce_handler(
 	INFO_MSG(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC_CARD_EMUL) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -531,10 +528,7 @@ static gboolean hce_handle_stop_hce_handler(
 	INFO_MSG(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC_CARD_EMUL) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -626,10 +620,7 @@ static gboolean hce_handle_response_apdu(
 	INFO_MSG(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
 
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC_CARD_EMUL) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 

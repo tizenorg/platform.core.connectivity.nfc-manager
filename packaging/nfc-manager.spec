@@ -30,7 +30,9 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(libxml-2.0)
 BuildRequires: pkgconfig(libcurl)
-BuildRequires: pkgconfig(libprivilege-control)
+BuildRequires: pkgconfig(cynara-client)
+BuildRequires: pkgconfig(cynara-creds-gdbus)
+BuildRequires: pkgconfig(cynara-session)
 BuildRequires: python
 BuildRequires: python-xml
 

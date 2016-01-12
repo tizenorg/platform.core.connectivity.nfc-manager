@@ -233,10 +233,7 @@ static gboolean test_handle_sim_test(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -296,10 +293,7 @@ static gboolean test_handle_prbs_test(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -359,10 +353,7 @@ static gboolean test_handle_get_firmware_version(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -424,10 +415,7 @@ static gboolean test_handle_set_ee_data(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -486,10 +474,7 @@ static gboolean test_handle_ese_test(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 #if 0
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -571,10 +556,7 @@ static gboolean test_handle_set_se_tech_type(NetNfcGDbusTest *test,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager",
-		"rw") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 

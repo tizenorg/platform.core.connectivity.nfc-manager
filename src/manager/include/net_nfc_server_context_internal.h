@@ -54,9 +54,7 @@ void net_nfc_server_gdbus_unregister_on_client_detached_cb(
 	net_nfc_server_gdbus_on_client_detached_cb cb);
 
 bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation,
-	GVariant *privilege,
-	const char *object,
-	const char *right);
+	net_nfc_privilege_e privilege);
 
 void net_nfc_server_gdbus_add_client_context(const char *id,
 	client_state_e state);

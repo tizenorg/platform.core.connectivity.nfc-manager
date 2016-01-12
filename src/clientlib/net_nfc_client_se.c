@@ -185,7 +185,6 @@ static void se_transaction_event(GObject *source_object,
 	if (net_nfc_gdbus_secure_element_call_check_transaction_permission_sync(
 		NET_NFC_GDBUS_SECURE_ELEMENT(source_object),
 		arg_aid,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == false) {
@@ -474,7 +473,6 @@ net_nfc_error_e net_nfc_client_se_set_secure_element_type(
 	net_nfc_gdbus_secure_element_call_set(
 				se_proxy,
 				(gint)se_type,
-				net_nfc_client_gdbus_get_privilege(),
 				NULL,
 				set_secure_element,
 				func_data);
@@ -507,7 +505,6 @@ net_nfc_error_e net_nfc_client_se_set_secure_element_type_sync(
 	if (net_nfc_gdbus_secure_element_call_set_sync(
 			se_proxy,
 			(gint)se_type,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			NULL,
 			&error) == FALSE)
@@ -552,7 +549,6 @@ net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 #else
 	if (net_nfc_gdbus_secure_element_call_get_sync(
 			se_proxy,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&type,
 			NULL,
@@ -595,7 +591,6 @@ net_nfc_error_e net_nfc_set_card_emulation_mode_sync(
 	if (net_nfc_gdbus_secure_element_call_set_card_emulation_sync(
 			se_proxy,
 			(gint)mode,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			NULL,
 			&error) == FALSE)
@@ -633,7 +628,6 @@ net_nfc_error_e net_nfc_get_card_emulation_mode_sync(
 
 	if (net_nfc_gdbus_secure_element_call_get_card_emulation_sync(
 			se_proxy,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&type,
 			NULL,
@@ -690,7 +684,6 @@ net_nfc_error_e net_nfc_client_se_open_internal_secure_element(
 	net_nfc_gdbus_secure_element_call_open_secure_element(
 					auto_start_proxy,
 					(gint)se_type,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					open_secure_element,
 					func_data);
@@ -737,7 +730,6 @@ net_nfc_error_e net_nfc_client_se_open_internal_secure_element_sync(
 	if (net_nfc_gdbus_secure_element_call_open_secure_element_sync(
 					auto_start_proxy,
 					se_type,
-					net_nfc_client_gdbus_get_privilege(),
 					&result,
 					&out_handle,
 					NULL,
@@ -795,7 +787,6 @@ net_nfc_error_e net_nfc_client_se_close_internal_secure_element(
 	net_nfc_gdbus_secure_element_call_close_secure_element(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		close_secure_element,
 		func_data);
@@ -836,7 +827,6 @@ net_nfc_error_e net_nfc_client_se_close_internal_secure_element_sync(
 	if (net_nfc_gdbus_secure_element_call_close_secure_element_sync(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -892,7 +882,6 @@ net_nfc_error_e net_nfc_client_se_get_atr(
 	net_nfc_gdbus_secure_element_call_get_atr(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		get_atr_secure_element,
 		func_data);
@@ -941,7 +930,6 @@ net_nfc_error_e net_nfc_client_se_get_atr_sync(
 	if (net_nfc_gdbus_secure_element_call_get_atr_sync(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		&out_atr,
 		NULL,
@@ -1008,7 +996,6 @@ net_nfc_error_e net_nfc_client_se_send_apdu(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
 		arg_data,
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		send_apdu_secure_element,
 		func_data);
@@ -1064,7 +1051,6 @@ net_nfc_error_e net_nfc_client_se_send_apdu_sync(
 		auto_start_proxy,
 		GPOINTER_TO_UINT(handle),
 		arg_data,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		&out_data,
 		NULL,
@@ -1208,7 +1194,6 @@ net_nfc_error_e net_nfc_client_se_set_transaction_fg_dispatch(int mode)
 	if (net_nfc_gdbus_secure_element_call_set_transaction_fg_dispatch_sync(
 		auto_start_proxy,
 		mode,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) != true) {
@@ -1247,7 +1232,6 @@ net_nfc_error_e net_nfc_client_se_set_default_route_sync(
 		switch_on,
 		switch_off,
 		battery_off,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -1288,7 +1272,6 @@ net_nfc_error_e net_nfc_client_se_is_activated_aid_handler_sync(
 			se_proxy,
 			se_type,
 			aid,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&ret,
 			NULL,
@@ -1330,7 +1313,6 @@ net_nfc_error_e net_nfc_client_se_is_activated_category_handler_sync(
 			se_proxy,
 			se_type,
 			category,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&ret,
 			NULL,
@@ -1373,7 +1355,6 @@ net_nfc_error_e net_nfc_client_se_get_registered_aids_count_sync(
 			se_proxy,
 			se_type,
 			category,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&aids,
 			NULL,
@@ -1426,7 +1407,6 @@ net_nfc_error_e net_nfc_client_se_foreach_registered_aids_sync(
 			se_proxy,
 			se_type,
 			category,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&aids,
 			NULL,
@@ -1475,7 +1455,6 @@ net_nfc_error_e net_nfc_client_se_register_aids_sync(net_nfc_se_type_e se_type,
 			se_type,
 			category,
 			aid,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			NULL,
 			&error) == FALSE)
@@ -1510,7 +1489,6 @@ net_nfc_error_e net_nfc_client_se_unregister_aid_sync(net_nfc_se_type_e se_type,
 			se_type,
 			category,
 			aid,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			NULL,
 			&error) == FALSE)
@@ -1543,7 +1521,6 @@ net_nfc_error_e net_nfc_client_se_unregister_aids_sync(net_nfc_se_type_e se_type
 			se_proxy,
 			se_type,
 			category,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			NULL,
 			&error) == FALSE)
@@ -1583,7 +1560,6 @@ net_nfc_error_e net_nfc_client_se_foreach_registered_handlers_sync(
 	if (net_nfc_gdbus_secure_element_call_get_registered_handlers_sync(
 			se_proxy,
 			category,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&handlers,
 			NULL,
@@ -1646,7 +1622,6 @@ net_nfc_error_e net_nfc_client_se_add_route_aid_sync(
 		category,
 		unlock_required,
 		power,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -1693,7 +1668,6 @@ net_nfc_error_e net_nfc_client_se_remove_route_aid_sync(
 		auto_start_proxy,
 		package,
 		aid,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -1739,7 +1713,6 @@ net_nfc_error_e net_nfc_client_se_remove_package_aids_sync(
 	if (net_nfc_gdbus_secure_element_call_remove_package_aids_sync(
 		auto_start_proxy,
 		package,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)

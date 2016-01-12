@@ -100,7 +100,6 @@ net_nfc_error_e net_nfc_client_sys_handler_set_state(int state,
 	net_nfc_gdbus_popup_call_set(popup_proxy,
 		state,
 		CHECK_FOREGROUND,
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		popup_set_active_callback,
 		func_data);
@@ -131,7 +130,6 @@ net_nfc_error_e net_nfc_client_sys_handler_set_state_sync(int state)
 	if (net_nfc_gdbus_popup_call_set_sync(popup_proxy,
 		state,
 		CHECK_FOREGROUND,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -177,7 +175,6 @@ net_nfc_error_e net_nfc_client_sys_handler_set_state_force(int state,
 	net_nfc_gdbus_popup_call_set(popup_proxy,
 		state,
 		NO_CHECK_FOREGROUND,
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		popup_set_active_callback,
 		func_data);
@@ -208,7 +205,6 @@ net_nfc_error_e net_nfc_client_sys_handler_set_state_force_sync(int state)
 	if (net_nfc_gdbus_popup_call_set_sync(popup_proxy,
 		state,
 		NO_CHECK_FOREGROUND,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == FALSE)
@@ -268,7 +264,6 @@ net_nfc_error_e net_nfc_client_sys_handler_get_launch_popup_state(
 	}
 
 	if (net_nfc_gdbus_popup_call_get_sync(popup_proxy,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		&out_state,
 		NULL,

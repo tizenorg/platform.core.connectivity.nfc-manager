@@ -122,7 +122,6 @@ net_nfc_error_e net_nfc_client_snep_start_server(
 		sap,
 		san,
 		GPOINTER_TO_UINT(parameter),
-		net_nfc_client_gdbus_get_privilege(),
 		(gint *)&result,
 		NULL,
 		&error) == FALSE)
@@ -172,7 +171,6 @@ net_nfc_error_e net_nfc_client_snep_start_client(
 		sap,
 		san,
 		GPOINTER_TO_UINT(parameter),
-		net_nfc_client_gdbus_get_privilege(),
 		(gint *)&result,
 		NULL,
 		&error) == FALSE)
@@ -228,7 +226,6 @@ net_nfc_error_e net_nfc_client_snep_send_client_request(
 		GPOINTER_TO_UINT(target),
 		snep_type,
 		ndef_msg,
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		snep_send_client_request,
 		parameter);
@@ -271,7 +268,6 @@ net_nfc_error_e net_nfc_client_snep_send_client_request_sync(
 		GPOINTER_TO_UINT(target),
 		snep_type,
 		arg_msg,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		resp_type,
 		&resp_msg,
@@ -333,7 +329,6 @@ net_nfc_error_e net_nfc_client_snep_stop_service_sync(
 		snep_proxy,
 		GPOINTER_TO_UINT(target),
 		GPOINTER_TO_UINT(service),
-		net_nfc_client_gdbus_get_privilege(),
 		(gint *)&result,
 		NULL,
 		&error) == FALSE)
@@ -430,7 +425,6 @@ net_nfc_error_e net_nfc_client_snep_register_server(const char *san,
 		sap,
 		san,
 		GPOINTER_TO_UINT(parameter),
-		net_nfc_client_gdbus_get_privilege(),
 		(gint *)&result,
 		NULL,
 		&error) == FALSE)
@@ -469,7 +463,6 @@ net_nfc_error_e net_nfc_client_snep_unregister_server(const char *san,
 	if (net_nfc_gdbus_snep_call_server_unregister_sync(snep_proxy,
 		sap,
 		san,
-		net_nfc_client_gdbus_get_privilege(),
 		(gint *)&result,
 		NULL,
 		&error) == FALSE)

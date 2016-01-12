@@ -263,7 +263,6 @@ net_nfc_error_e net_nfc_client_manager_set_active(int state,
 
 	net_nfc_gdbus_manager_call_set_active(auto_start_proxy,
 		active,
-		net_nfc_client_gdbus_get_privilege(),
 		NULL,
 		manager_call_set_active_callback,
 		func_data);
@@ -300,7 +299,6 @@ net_nfc_error_e net_nfc_client_manager_set_active_sync(int state)
 
 	if (net_nfc_gdbus_manager_call_set_active_sync(auto_start_proxy,
 		(gboolean)state,
-		net_nfc_client_gdbus_get_privilege(),
 		&out_result,
 		NULL,
 		&error) == FALSE)
@@ -338,7 +336,6 @@ net_nfc_error_e net_nfc_client_manager_get_server_state(
 	func_data->user_data = user_data;
 
 	net_nfc_gdbus_manager_call_get_server_state(manager_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					manager_call_get_server_state_callback,
 					func_data);
@@ -368,7 +365,6 @@ net_nfc_error_e net_nfc_client_manager_get_server_state_sync(
 	}
 
 	if (net_nfc_gdbus_manager_call_get_server_state_sync(manager_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					&out_result,
 					&out_state,
 					NULL,

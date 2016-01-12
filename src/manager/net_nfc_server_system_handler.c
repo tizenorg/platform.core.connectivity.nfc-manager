@@ -48,10 +48,7 @@ static gboolean popup_handle_set(NetNfcGDbusPopup *popup_manager,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager::common",
-		"w") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 
@@ -81,10 +78,7 @@ static gboolean popup_handle_get(NetNfcGDbusPopup *popup_manager,
 		g_dbus_method_invocation_get_sender(invocation));
 
 	/* check privilege and update client context */
-	if (net_nfc_server_gdbus_check_privilege(invocation,
-		smack_privilege,
-		"nfc-manager::common",
-		"r") == false) {
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
 		result = NET_NFC_PERMISSION_DENIED;
 

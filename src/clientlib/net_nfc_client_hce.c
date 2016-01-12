@@ -95,8 +95,7 @@ net_nfc_error_e net_nfc_client_hce_set_event_received_cb(
 	}
 
 	if (net_nfc_gdbus_hce_call_start_hce_handler_sync(hce_proxy,
-		net_nfc_client_gdbus_get_privilege(), &result,
-		NULL, &error) == true) {
+		&result, NULL, &error) == true) {
 		hce_handler.hce_event_cb = callback;
 		hce_handler.hce_data = user_data;
 	} else {
@@ -121,8 +120,7 @@ net_nfc_error_e net_nfc_client_hce_unset_event_received_cb(void)
 	}
 
 	if (net_nfc_gdbus_hce_call_stop_hce_handler_sync(hce_proxy,
-		net_nfc_client_gdbus_get_privilege(), &result,
-		NULL, &error) == true) {
+		&result, NULL, &error) == true) {
 		hce_handler.hce_event_cb = NULL;
 		hce_handler.hce_data = NULL;
 	} else {
@@ -169,7 +167,6 @@ net_nfc_error_e net_nfc_client_hce_response_apdu_sync(
 		hce_proxy,
 		GPOINTER_TO_UINT(handle),
 		arg_data,
-		net_nfc_client_gdbus_get_privilege(),
 		&result,
 		NULL,
 		&error) == true) {

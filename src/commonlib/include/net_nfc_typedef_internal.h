@@ -199,6 +199,15 @@ typedef enum _net_nfc_launch_popup_state_e
 	NET_NFC_NO_LAUNCH_APP_SELECT,
 } net_nfc_launch_popup_state_e;
 
+typedef enum _net_nfc_privilege_e
+{
+	NET_NFC_PRIVILEGE_NFC = 0x00,
+	NET_NFC_PRIVILEGE_NFC_ADMIN,
+	NET_NFC_PRIVILEGE_NFC_TAG,
+	NET_NFC_PRIVILEGE_NFC_P2P,
+	NET_NFC_PRIVILEGE_NFC_CARD_EMUL
+} net_nfc_privilege_e;
+
 /* server state */
 #define NET_NFC_SERVER_IDLE		0
 #define NET_NFC_SERVER_DISCOVERY	(1 << 1)

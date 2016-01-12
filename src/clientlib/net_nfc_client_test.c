@@ -252,7 +252,6 @@ net_nfc_error_e net_nfc_client_test_sim_test(
 	func_data->user_data = user_data;
 
 	net_nfc_gdbus_test_call_sim_test(test_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					test_call_sim_test_callback,
 					func_data);
@@ -281,7 +280,6 @@ net_nfc_error_e net_nfc_client_test_sim_test_sync(void)
 	}
 
 	if (net_nfc_gdbus_test_call_sim_test_sync(test_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -328,7 +326,6 @@ net_nfc_error_e net_nfc_client_test_prbs_test(uint32_t tech,
 	net_nfc_gdbus_test_call_prbs_test(test_proxy,
 					tech,
 					rate,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					test_call_prbs_test_callback,
 					func_data);
@@ -360,7 +357,6 @@ net_nfc_error_e net_nfc_client_test_prbs_test_sync(uint32_t tech,
 	if (net_nfc_gdbus_test_call_prbs_test_sync(test_proxy,
 					tech,
 					rate,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -404,7 +400,6 @@ net_nfc_error_e net_nfc_client_test_get_firmware_version(
 	func_data->user_data = user_data;
 
 	net_nfc_gdbus_test_call_get_firmware_version(test_proxy,
-				net_nfc_client_gdbus_get_privilege(),
 				NULL,
 				test_call_get_firmware_version_callback,
 				func_data);
@@ -439,7 +434,6 @@ net_nfc_error_e net_nfc_client_test_get_firmware_version_sync(char **version)
 	}
 
 	if (net_nfc_gdbus_test_call_get_firmware_version_sync(test_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					&out_version,
 					NULL,
@@ -497,7 +491,6 @@ net_nfc_error_e net_nfc_client_test_set_ee_data(int mode,
 					mode,
 					reg_id,
 					variant,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					test_call_set_ee_data_callback,
 					func_data);
@@ -534,7 +527,6 @@ net_nfc_error_e net_nfc_client_test_set_ee_data_sync(int mode,
 					mode,
 					reg_id,
 					variant,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -580,7 +572,6 @@ net_nfc_error_e net_nfc_client_test_ese_test(
 	func_data->user_data = user_data;
 
 	net_nfc_gdbus_test_call_ese_test(test_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					test_call_ese_test_callback,
 					func_data);
@@ -611,7 +602,6 @@ net_nfc_error_e net_nfc_client_test_ese_test_sync(void)
 	}
 
 	if (net_nfc_gdbus_test_call_ese_test_sync(test_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)
@@ -650,7 +640,6 @@ net_nfc_error_e net_nfc_client_test_set_se_tech_type_sync(
 	if (net_nfc_gdbus_test_call_set_se_tech_type_sync(test_proxy,
 					(guint32)type,
 					(guint32)tech,
-					net_nfc_client_gdbus_get_privilege(),
 					(gint *)&out_result,
 					NULL,
 					&error) == FALSE)

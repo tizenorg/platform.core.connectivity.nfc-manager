@@ -231,7 +231,6 @@ net_nfc_error_e net_nfc_client_p2p_connection_handover(
 	net_nfc_gdbus_handover_call_request(handover_proxy,
 					GPOINTER_TO_UINT(tag_handle),
 					arg_type,
-					net_nfc_client_gdbus_get_privilege(),
 					NULL,
 					p2p_connection_handover,
 					funcdata);
@@ -271,7 +270,6 @@ net_nfc_error_e net_nfc_client_p2p_connection_handover_sync(
 	if (net_nfc_gdbus_handover_call_request_sync(handover_proxy,
 		GPOINTER_TO_UINT(tag_handle),
 		arg_type,
-		net_nfc_client_gdbus_get_privilege(),
 		(gint32 *)&out_result,
 		(gint32 *)&out_type,
 		&out_data,

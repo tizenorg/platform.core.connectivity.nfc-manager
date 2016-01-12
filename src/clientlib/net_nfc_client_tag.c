@@ -468,39 +468,6 @@ net_nfc_target_info_s *net_nfc_client_tag_get_client_target_info(void)
 	return client_target_info;
 }
 
-/* public APIs */
-#if 0
-NET_NFC_EXPORT_API
-net_nfc_error_e net_nfc_client_tag_is_tag_connected(
-			net_nfc_client_tag_is_tag_connected_completed callback,
-			void *user_data)
-{
-	NetNfcCallback *func_data;
-
-	if (tag_proxy == NULL)
-		return NET_NFC_NOT_INITIALIZED;
-
-	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
-
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (func_data == NULL)
-		return NET_NFC_ALLOC_FAIL;
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	net_nfc_gdbus_tag_call_is_tag_connected(tag_proxy,
-					net_nfc_client_gdbus_get_privilege(),
-					NULL,
-					tag_is_tag_connected,
-					func_data);
-
-	return NET_NFC_OK;
-}
-#endif
 NET_NFC_EXPORT_API
 net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 					net_nfc_target_type_e *dev_type)
@@ -523,7 +490,6 @@ net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 	if (info == NULL) {
 		/* try to request target information from server */
 		if (net_nfc_gdbus_tag_call_is_tag_connected_sync(tag_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					&result,
 					&out_is_connected,
 					(gint *)&out_dev_type,
@@ -558,40 +524,6 @@ net_nfc_error_e net_nfc_client_tag_is_tag_connected_sync(
 
 	return result;
 }
-#if 0
-NET_NFC_EXPORT_API
-net_nfc_error_e net_nfc_client_tag_get_current_tag_info(
-		net_nfc_client_tag_get_current_tag_info_completed callback,
-		void *user_data)
-{
-	NetNfcCallback *func_data;
-
-	if (tag_proxy == NULL)
-		return NET_NFC_NOT_INITIALIZED;
-
-	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
-
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (func_data == NULL) {
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	net_nfc_gdbus_tag_call_get_current_tag_info(tag_proxy,
-					net_nfc_client_gdbus_get_privilege(),
-					NULL,
-					tag_get_current_tag_info,
-					func_data);
-
-	return NET_NFC_OK;
-}
-#endif
-
 
 NET_NFC_EXPORT_API
 net_nfc_error_e net_nfc_client_barcode_get_barcode_sync(
@@ -611,7 +543,6 @@ net_nfc_error_e net_nfc_client_barcode_get_barcode_sync(
 	}
 
 	if (net_nfc_gdbus_tag_call_get_barcode_sync(tag_proxy,
-				net_nfc_client_gdbus_get_privilege(),
 				&result,
 				&out_barcode,
 				NULL,
@@ -674,7 +605,6 @@ net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 	if (net_nfc_client_tag_get_client_target_info() == NULL) {
 		/* try to request target information from server */
 		if (net_nfc_gdbus_tag_call_get_current_tag_info_sync(tag_proxy,
-					net_nfc_client_gdbus_get_privilege(),
 					&result,
 					&out_is_connected,
 					&out_handle,
@@ -732,39 +662,7 @@ net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 
 	return result;
 }
-#if 0
-NET_NFC_EXPORT_API
-net_nfc_error_e net_nfc_client_tag_get_current_target_handle(
-	net_nfc_client_tag_get_current_target_handle_completed callback,
-	void *user_data)
-{
-	NetNfcCallback *func_data;
 
-	if (tag_proxy == NULL)
-		return NET_NFC_NOT_INITIALIZED;
-
-	/* prevent executing daemon when nfc is off */
-	if (net_nfc_client_manager_is_activated() == false) {
-		return NET_NFC_INVALID_STATE;
-	}
-
-	func_data = g_try_new0(NetNfcCallback, 1);
-	if (func_data == NULL) {
-		return NET_NFC_ALLOC_FAIL;
-	}
-
-	func_data->callback = (gpointer)callback;
-	func_data->user_data = user_data;
-
-	net_nfc_gdbus_tag_call_get_current_target_handle(tag_proxy,
-					net_nfc_client_gdbus_get_privilege(),
-					NULL,
-					tag_get_current_target_handle,
-					func_data);
-
-	return NET_NFC_OK;
-}
-#endif
 NET_NFC_EXPORT_API
 net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 					net_nfc_target_handle_h *handle)
@@ -788,7 +686,6 @@ net_nfc_error_e net_nfc_client_tag_get_current_target_handle_sync(
 	if (info == NULL) {
 		if (net_nfc_gdbus_tag_call_get_current_target_handle_sync(
 			tag_proxy,
-			net_nfc_client_gdbus_get_privilege(),
 			&result,
 			&out_is_connected,
 			&out_handle,

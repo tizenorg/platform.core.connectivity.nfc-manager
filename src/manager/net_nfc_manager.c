@@ -22,7 +22,6 @@
 #include <dbus/dbus-glib-bindings.h>
 #include <gio/gio.h>
 #include <sys/utsname.h>
-#include <privilege-control.h>
 
 #include <vconf.h>
 
@@ -121,13 +120,6 @@ int main(int argc, char *argv[])
 	GOptionContext *option_context;
 	GError *error = NULL;
 	bool check_csc = 0;
-
-	if (getuid() == 0)
-	{
-		int ret = perm_app_set_privilege("system", NULL, NULL);
-		if(ret != 0)
-			return 0;
-	}
 
 	if (!g_thread_supported())
 	{
