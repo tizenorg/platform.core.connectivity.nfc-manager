@@ -26,6 +26,21 @@
 #include "net_nfc_util_internal.h"
 #include "net_nfc_manager_util_internal.h"
 
+static void __focus_changed_cb(sound_stream_info_h stream_info,
+	sound_stream_focus_change_reason_e reason_for_change, const char *additional_info, void *user_data)
+{
+
+}
+
+static void __wav_start_completed_cb(int id, void *user_data)
+{
+	sound_stream_info_h stream_info = (sound_stream_info_h) user_data;
+
+	sound_manager_release_focus(stream_info, SOUND_STREAM_FOCUS_FOR_PLAYBACK, NULL);
+	sound_manager_destroy_stream_information(stream_info);
+}
+
+
 void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 {
 	int bSoundOn = 0;
@@ -85,11 +100,27 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 
 		if (sound_path != NULL)
 		{
-			sound_manager_set_session_type(SOUND_SESSION_TYPE_NOTIFICATION);
-			if (MM_ERROR_NONE  == wav_player_start(sound_path, SOUND_TYPE_NOTIFICATION, NULL, NULL, NULL))
-//			if (MM_ERROR_NONE  == mm_sound_play_keysound(sound_path, VOLUME_TYPE_NOTIFICATION))
-			{
-				DEBUG_MSG("wav_player_start success");
+			int id;
+			int ret;
+			sound_stream_info_h stream_info;
+
+			ret = sound_manager_create_stream_information(SOUND_STREAM_TYPE_NOTIFICATION, __focus_changed_cb, NULL, &stream_info);
+
+			if (ret == SOUND_MANAGER_ERROR_NONE) {
+				ret = sound_manager_acquire_focus(stream_info, SOUND_STREAM_FOCUS_FOR_PLAYBACK, NULL);
+				if (ret == SOUND_MANAGER_ERROR_NONE) {
+					ret = wav_player_start_with_stream_info(sound_path,
+						stream_info, __wav_start_completed_cb, stream_info, &id);
+					if (ret == WAV_PLAYER_ERROR_NONE) {
+						DEBUG_SERVER_MSG("wav_player_start_with_stream_info success");
+					} else {
+						DEBUG_SERVER_MSG("wav_player_start_with_stream_info failed");
+					}
+				} else {
+					DEBUG_SERVER_MSG("sound_manager_acquire_focus failed");
+				}
+			} else {
+				DEBUG_SERVER_MSG("sound_manager_create_stream_information failed");
 			}
 
 			_net_nfc_util_free_mem(sound_path);
