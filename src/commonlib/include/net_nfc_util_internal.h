@@ -96,6 +96,6 @@ bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len);
 
 bool net_nfc_util_hex_string_to_binary(const char *str, data_s *result);
 bool net_nfc_util_binary_to_hex_string(data_s *data, char *out_buf, uint32_t max_len);
-
+int net_nfc_util_get_fd_from_systemd(void);
 
 #endif //__NET_NFC_UTIL_INTERNAL_H__

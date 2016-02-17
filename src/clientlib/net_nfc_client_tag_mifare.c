@@ -418,7 +418,7 @@ net_nfc_error_e net_nfc_client_mifare_write_block(
 	if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
 			target_info->devType > NET_NFC_MIFARE_ULTRA_PICC)
 	{
-		DEBUG_CLIENT_MSG("not a MIFARE TAG = [%d] \n",
+		DEBUG_CLIENT_MSG("not a MIFARE TAG = [%d] ",
 					target_info->devType);
 		return NET_NFC_NOT_SUPPORTED;
 	}
@@ -579,7 +579,7 @@ net_nfc_error_e net_nfc_client_mifare_write_page(
 	if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
 			target_info->devType > NET_NFC_MIFARE_ULTRA_PICC)
 	{
-		DEBUG_CLIENT_MSG("not a MIFARE TAG = [%d] \n",
+		DEBUG_CLIENT_MSG("not a MIFARE TAG = [%d] ",
 				target_info->devType);
 		return NET_NFC_NOT_SUPPORTED;
 	}
@@ -794,7 +794,7 @@ net_nfc_error_e net_nfc_client_mifare_decrement(net_nfc_target_handle_h handle,
 		if (target_info->devType < NET_NFC_MIFARE_MINI_PICC ||
 				target_info->devType > NET_NFC_MIFARE_4K_PICC)
 		{
-			DEBUG_CLIENT_MSG("not a MIFARE Classic TAG = [%d] \n",
+			DEBUG_CLIENT_MSG("not a MIFARE Classic TAG = [%d] ",
 					target_info->devType);
 			return NET_NFC_NOT_SUPPORTED;
 		}

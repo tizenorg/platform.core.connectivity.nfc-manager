@@ -435,6 +435,10 @@ net_nfc_error_e net_nfc_util_create_ndef_record_with_carrier_config(
 		result = net_nfc_util_handover_wps_create_record_from_config(record, config);
 		break;
 
+	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P :
+		result = net_nfc_util_handover_wfd_create_record_from_config(record, config);
+		break;
+
 	default :
 		result = NET_NFC_NOT_SUPPORTED;
 		break;
@@ -457,6 +461,8 @@ net_nfc_error_e net_nfc_util_create_carrier_config_from_config_record(
 		result = net_nfc_util_handover_bt_create_config_from_record(config, record);
 	} else if (net_nfc_util_handover_wps_check_carrier_record(record)) {
 		result = net_nfc_util_handover_wps_create_config_from_record(config, record);
+	} else if (net_nfc_util_handover_wfd_check_carrier_record(record)) {
+		result = net_nfc_util_handover_wfd_create_config_from_record(config, record);
 	} else {
 		result = NET_NFC_NOT_SUPPORTED;
 	}
@@ -1270,6 +1276,10 @@ static net_nfc_conn_handover_carrier_type_e _get_carrier_type_from_record(
 	else if (net_nfc_util_handover_wps_check_carrier_record(record))
 	{
 		result = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS;
+	}
+	else if (net_nfc_util_handover_wfd_check_carrier_record(record))
+	{
+		result = NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P;
 	}
 	else
 	{

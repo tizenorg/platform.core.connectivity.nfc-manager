@@ -53,7 +53,8 @@ static bool net_nfc_check_mode_conditions();
 
 void net_nfc_manager_quit()
 {
-	DEBUG_MSG("net_nfc_manager_quit kill the nfc-manager daemon!!");
+	DEBUG_SERVER_MSG("net_nfc_manager_quit kill the nfc-manager daemon!!");
+
 	if (loop != NULL) {
 		g_main_loop_quit(loop);
 	}
@@ -65,15 +66,19 @@ static void on_bus_acquired(GDBusConnection *connection,
 {
 	gint state;
 
-	DEBUG_MSG("bus path : %s", path);
+	DEBUG_SERVER_MSG("bus path : %s", path);
 
 	net_nfc_server_gdbus_init();
 
+	#if 0
 	net_nfc_server_controller_init();
+	#else
+	net_nfc_server_controller_init_sync();
+	#endif
 
 	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
 	{
-		DEBUG_MSG("VCONFKEY_NFC_STATE is not exist");
+		DEBUG_SERVER_MSG("VCONFKEY_NFC_STATE is not exist");
 		net_nfc_manager_quit();
 
 		return;
@@ -88,7 +93,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 #ifndef ESE_ALWAYS_ON
 	else if (use_daemon == TRUE)
 	{
-		DEBUG_ERR_MSG("net_nfc_server_controller_deinit");
+		DEBUG_SERVER_MSG("exit process...");
 		net_nfc_server_controller_deinit();
 	}
 #endif
@@ -98,14 +103,14 @@ static void on_name_acquired(GDBusConnection *connection,
 			const gchar *name,
 			gpointer user_data)
 {
-	DEBUG_SERVER_MSG("name : %s", name);
+	SECURE_MSG("name : %s", name);
 }
 
 static void on_name_lost(GDBusConnection *connnection,
 			const gchar *name,
 			gpointer user_data)
 {
-	DEBUG_SERVER_MSG("name : %s", name);
+	SECURE_MSG("name : %s", name);
 
 	net_nfc_manager_quit();
 }
@@ -120,6 +125,7 @@ int main(int argc, char *argv[])
 	GOptionContext *option_context;
 	GError *error = NULL;
 	bool check_csc = 0;
+	int result;
 
 	if (!g_thread_supported())
 	{
@@ -206,7 +212,10 @@ EXIT :
 		g_bus_unown_name(id);
 	}
 
+	usleep(1000 * 10); // 10ms
+
 	net_nfc_controller_unload(handle);
+	DEBUG_SERVER_MSG("END net_nfc_controller_unload");
 
 	net_nfc_manager_fini_log();
 

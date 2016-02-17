@@ -100,7 +100,7 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 		}
 
 		if (memcmp(apdu->data, tmoney_aid, MIN(sizeof(tmoney_aid), apdu->lc)) == 0) {
-			DEBUG_SERVER_MSG("select tmoney applet");
+			DEBUG_ADDON_MSG("select tmoney applet");
 
 			selected = true;
 
@@ -128,7 +128,7 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 			goto END;
 		}
 
-		DEBUG_SERVER_MSG("tmoney read");
+		DEBUG_ADDON_MSG("tmoney read");
 
 		__send_response(handle, NET_NFC_HCE_SW_SUCCESS,
 			tmoney_uid,
@@ -149,17 +149,17 @@ static void __nfc_addon_hce_tmoney_listener(net_nfc_target_handle_s *handle,
 {
 	switch (event) {
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
 		selected = false;
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
 		__process_command(handle, data);
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
 		selected = false;
 		break;
 

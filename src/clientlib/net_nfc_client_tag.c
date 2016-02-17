@@ -153,7 +153,7 @@ static void tag_get_info_list(guint8 *buffer,
 		str = g_new0(gchar, length + 1);
 		memcpy(str, pos, length);
 
-		DEBUG_CLIENT_MSG("key = [%s]", str);
+		SECURE_MSG("key = [%s]", str);
 
 		pos += length;
 
@@ -404,7 +404,7 @@ static void tag_tag_discovered(NetNfcGDbusTag *object,
 	client_target_info = NULL;
 
 	if (tag_check_filter(arg_dev_type) == FALSE) {
-		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+		DEBUG_CLIENT_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
 
 		return;
 	}
@@ -444,7 +444,7 @@ static void tag_tag_detached(NetNfcGDbusTag *object,
 			callback(tag_detached_func_data.user_data);
 		}
 	} else {
-		INFO_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
+		DEBUG_CLIENT_MSG("The detected target is filtered out, type [%d]", arg_dev_type);
 	}
 
 	net_nfc_release_tag_info((net_nfc_target_info_h)client_target_info);
@@ -644,7 +644,7 @@ net_nfc_error_e net_nfc_client_tag_get_current_tag_info_sync(
 
 					result = NET_NFC_OK;
 				} else {
-					INFO_MSG("The detected target is filtered out");
+					DEBUG_CLIENT_MSG("The detected target is filtered out");
 
 					result = NET_NFC_NOT_CONNECTED;
 				}

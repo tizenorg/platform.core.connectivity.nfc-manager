@@ -121,7 +121,7 @@ net_nfc_error_e net_nfc_client_felica_request_service(
 
 	if (target_info->devType != NET_NFC_FELICA_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		DEBUG_CLIENT_MSG("only felica tag is available");
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -212,7 +212,7 @@ net_nfc_error_e net_nfc_client_felica_request_response(
 
 	if (target_info->devType != NET_NFC_FELICA_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		DEBUG_CLIENT_MSG("only felica tag is available");
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -278,7 +278,7 @@ net_nfc_error_e net_nfc_client_felica_read_without_encryption(
 
 	if (target_info->devType != NET_NFC_FELICA_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		DEBUG_CLIENT_MSG("only felica tag is available");
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -386,7 +386,7 @@ net_nfc_error_e net_nfc_client_felica_write_without_encryption(
 
 	if (target_info->devType != NET_NFC_FELICA_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		DEBUG_CLIENT_MSG("only felica tag is available");
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 
@@ -490,7 +490,7 @@ net_nfc_error_e net_nfc_client_felica_request_system_code(
 
 	if (target_info->devType != NET_NFC_FELICA_PICC)
 	{
-		DEBUG_CLIENT_MSG("only Jewel tag is available");
+		DEBUG_CLIENT_MSG("only felica tag is available");
 		return NET_NFC_NOT_ALLOWED_OPERATION;
 	}
 

@@ -64,6 +64,9 @@ void net_nfc_server_gdbus_cleanup_client_context(const char *id);
 net_nfc_client_context_info_t *net_nfc_server_gdbus_get_client_context(
 	const char *id);
 
+net_nfc_client_context_info_t *net_nfc_server_gdbus_get_client_context_by_pid(
+	pid_t pid);
+
 size_t net_nfc_server_gdbus_get_client_count();
 
 void net_nfc_server_gdbus_for_each_client_context(
@@ -93,6 +96,7 @@ bool net_nfc_app_util_check_transaction_fg_dispatch();
 void net_nfc_server_gdbus_increase_se_count(const char *id);
 void net_nfc_server_gdbus_decrease_se_count(const char *id);
 
+bool net_nfc_server_gdbus_is_server_busy_no_lock();
 bool net_nfc_server_gdbus_is_server_busy();
 
 net_nfc_error_e net_nfc_server_gdbus_set_transaction_fg_dispatch(

@@ -27,6 +27,8 @@
 #include "net_nfc_util_gdbus_internal.h"
 #include "net_nfc_server.h"
 #include "net_nfc_server_context_internal.h"
+#include "net_nfc_server_common.h"
+#include "net_nfc_server_route_table.h"
 
 #ifdef USE_CYNARA
 #include "cynara-client.h"
@@ -51,7 +53,7 @@ static void _on_client_detached(gpointer data, gpointer user_data)
 {
 	net_nfc_server_gdbus_on_client_detached_cb cb = data;
 
-	DEBUG_MSG("invoke releasing callbacks");
+	DEBUG_SERVER_MSG("invoke releasing callbacks");
 
 	if (cb != NULL) {
 		cb((net_nfc_client_context_info_t *)user_data);
@@ -193,7 +195,7 @@ bool net_nfc_server_gdbus_check_privilege(GDBusMethodInvocation *invocation, net
 
 	const char *id = g_dbus_method_invocation_get_sender(invocation);
 
-	INFO_MSG("check the id of the gdbus sender = [%s]", id);
+	DEBUG_SERVER_MSG("check the id of the gdbus sender = [%s]",id);
 
 	net_nfc_server_gdbus_add_client_context(id,
 			NET_NFC_CLIENT_ACTIVE_STATE);
@@ -247,6 +249,31 @@ net_nfc_client_context_info_t *net_nfc_server_gdbus_get_client_context(
 	return result;
 }
 
+net_nfc_client_context_info_t *net_nfc_server_gdbus_get_client_context_by_pid(
+	pid_t pid)
+{
+	net_nfc_client_context_info_t *result = NULL;
+	char *key;
+	net_nfc_client_context_info_t *value;
+	GHashTableIter iter;
+
+	pthread_mutex_lock(&context_lock);
+
+	g_hash_table_iter_init(&iter, client_contexts);
+
+	while (g_hash_table_iter_next(&iter, (gpointer *)&key,
+		(gpointer *)&value) == true) {
+		if (value->pid == pid) {
+			result = value;
+			break;
+		}
+	}
+
+	pthread_mutex_unlock(&context_lock);
+
+	return result;
+}
+
 void net_nfc_server_gdbus_add_client_context(const char *id,
 	client_state_e state)
 {
@@ -286,7 +313,7 @@ void net_nfc_server_gdbus_add_client_context(const char *id,
 	}
 	else
 	{
-		INFO_MSG("we already have this client in our context!!");
+		DEBUG_SERVER_MSG("we already have this client in our context!!");
 	}
 
 	pthread_mutex_unlock(&context_lock);
@@ -309,12 +336,14 @@ void net_nfc_server_gdbus_cleanup_client_context(const char *id)
 		DEBUG_SERVER_MSG("current client count = [%d]",
 			net_nfc_server_gdbus_get_client_count_no_lock());
 
-//		/* TODO : exit when no client */
-//		if (net_nfc_server_gdbus_get_client_count_no_lock() == 0)
-//		{
-//			/* terminate service */
-//			net_nfc_manager_quit();
-//		}
+		net_nfc_server_route_table_unset_preferred_handler_by_id(id);
+
+		/* TODO : exit when no client */
+		if (net_nfc_server_gdbus_get_client_count_no_lock() == 0)
+		{
+			DEBUG_SERVER_MSG("put the nfc-manager into queue");
+			net_nfc_server_quit_nfc_manager_loop();
+		}
 	}
 
 	pthread_mutex_unlock(&context_lock);
@@ -554,11 +583,9 @@ void net_nfc_server_gdbus_decrease_se_count(const char *id)
 	pthread_mutex_unlock(&context_lock);
 }
 
-bool net_nfc_server_gdbus_is_server_busy()
+bool net_nfc_server_gdbus_is_server_busy_no_lock()
 {
 	bool result = false;
-
-	pthread_mutex_lock(&context_lock);
 
 	if (g_hash_table_size(client_contexts) > 0) {
 		GHashTableIter iter;
@@ -574,6 +601,17 @@ bool net_nfc_server_gdbus_is_server_busy()
 			}
 		}
 	}
+
+	return result;
+}
+
+bool net_nfc_server_gdbus_is_server_busy()
+{
+	bool result;
+
+	pthread_mutex_lock(&context_lock);
+
+	result = net_nfc_server_gdbus_is_server_busy_no_lock();
 
 	pthread_mutex_unlock(&context_lock);
 

@@ -179,7 +179,7 @@ static void __npp_server_received_cb(net_nfc_error_e result,
 	npp_data->data_offset += length;
 
 	if (npp_data->data_offset == npp_data->data.length) {
-		INFO_MSG("receive message complete, length [%d]", npp_data->data.length);
+		DEBUG_SERVER_MSG("receive message complete, length [%d]", npp_data->data.length);
 
 		/* launch */
 		if (npp_data->callback) {
@@ -191,7 +191,7 @@ static void __npp_server_received_cb(net_nfc_error_e result,
 //			/* start next entry */
 //		}
 	} else {
-		INFO_MSG("fragmented message, read [%d], expected [%d]", npp_data->data_offset, npp_data->data.length);
+		DEBUG_SERVER_MSG("fragmented message, read [%d], expected [%d]", npp_data->data_offset, npp_data->data.length);
 
 		/* receive next fragment */
 		result = net_nfc_server_llcp_simple_receive(npp_data->handle,
@@ -418,7 +418,7 @@ static void npp_client_send_cb(net_nfc_error_e result,
 		return;
 
 	if (npp_data->data_offset < npp_data->data.length) {
-		INFO_MSG("fragmented message, sent [%d], total [%d]", npp_data->data_offset, npp_data->data.length);
+		DEBUG_SERVER_MSG("fragmented message, sent [%d], total [%d]", npp_data->data_offset, npp_data->data.length);
 
 		npp_client_process(npp_data);
 	} else {

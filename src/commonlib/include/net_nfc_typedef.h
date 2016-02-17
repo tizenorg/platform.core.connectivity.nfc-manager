@@ -122,6 +122,8 @@ typedef enum
 /*968*/NET_NFC_INVALID_PARAM, /**< removal is requested but requested data is not registered */
 /*967*/NET_NFC_PERMISSION_DENIED, /**< privilege check is failed */
 /*966*/NET_NFC_NOT_ACTIVATED, /**< Application tries to request without activation */
+/*965*/NET_NFC_DATA_CONFLICTED, /**< Data is conflicted with another one */
+
 /*499*/NET_NFC_NDEF_TYPE_LENGTH_IS_NOT_OK = -499, /**< Illegal ndef record type length */
 /*498*/NET_NFC_NDEF_PAYLOAD_LENGTH_IS_NOT_OK, /**< Illegal ndef record payload length */
 /*497*/NET_NFC_NDEF_ID_LENGTH_IS_NOT_OK, /**< Illegal ndef record id length */
@@ -540,6 +542,7 @@ typedef enum
 	NET_NFC_SE_INVALID_ENTRY = 0x00, /**< Indicates SE type is Invalid */
 	NET_NFC_SE_TECH_ENTRY = 0x01, /*Technology*/
 	NET_NFC_SE_PROTOCOL_ENTRY = 0x02, /*Protocol*/
+	NET_NFC_SE_AID_ENTRY = 0x04, /*Using it clear aid table*/
 } net_nfc_se_entry_type_e;
 
 typedef enum

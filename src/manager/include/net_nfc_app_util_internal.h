@@ -51,6 +51,7 @@ void net_nfc_app_util_clean_storage(char* src_path);
 bool net_nfc_app_util_is_dir(const char* path_name);
 int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const char *mime, const char *data);
 int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len);
+int net_nfc_app_util_launch_se_off_host_apdu_service_app(net_nfc_se_type_e se_type, uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len);
 int net_nfc_app_util_encode_base64(uint8_t *buffer, uint32_t buf_len, char *result, uint32_t max_result);
 int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t *result, uint32_t *res_len);
 bool net_nfc_app_util_check_launch_state();

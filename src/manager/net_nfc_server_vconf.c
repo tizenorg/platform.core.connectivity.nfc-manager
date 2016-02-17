@@ -25,6 +25,8 @@
 #include "net_nfc_server_route_table.h"
 #include "net_nfc_server_vconf.h"
 
+static bool is_screen_state_on = false;
+
 static void net_nfc_server_vconf_lock_state_changed(keynode_t *key,
 						void *user_data);
 
@@ -42,7 +44,6 @@ static void net_nfc_server_vconf_lock_state_changed(keynode_t *key,
 
 	gint state = 0;
 	gint result;
-	gint lock_state = 0;
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
 	if (result != 0)
@@ -50,17 +51,11 @@ static void net_nfc_server_vconf_lock_state_changed(keynode_t *key,
 
 	if (state == false)
 	{
-		DEBUG_MSG("NFC off");
+		DEBUG_SERVER_MSG("NFC off");
 		return;
 	}
 
-	if (vconf_get_int(VCONFKEY_IDLE_LOCK_STATE, &lock_state) != 0)
-		DEBUG_ERR_MSG("%s does not exist", "VCONFKEY_IDLE_LOCK_STATE");
-
-
-	if (lock_state == VCONFKEY_IDLE_UNLOCK ||
-		            lock_state == VCONFKEY_IDLE_LOCK)
-	{
+	if (is_screen_state_on == true) {
 		net_nfc_server_restart_polling_loop();
 	}
 
@@ -71,7 +66,6 @@ static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 {
 	gint state = 0;
 	gint pm_state = 0;
-	gint lock_screen_set = 0;
 	gint result;
 
 	result = vconf_get_bool(VCONFKEY_NFC_STATE, &state);
@@ -81,7 +75,7 @@ static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 
 	if (state == false)
 	{
-		DEBUG_MSG("NFC off");
+		DEBUG_SERVER_MSG("NFC off");
 		return;
 	}
 
@@ -92,22 +86,12 @@ static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 
 	DEBUG_SERVER_MSG("pm_state : %d", pm_state);
 
-	result = vconf_get_int(VCONFKEY_SETAPPL_SCREEN_LOCK_TYPE_INT, &lock_screen_set);
-
-	if (result != 0)
-		DEBUG_ERR_MSG("can not get %s", "VCONFKEY_SETAPPL_SCREEN_LOCK_TYPE_INT");
-
-	DEBUG_SERVER_MSG("lock_screen_set : %d", lock_screen_set);
-
-#if 0
-	if ( lock_screen_set == SETTING_SCREEN_LOCK_TYPE_NONE &&
-		(pm_state == VCONFKEY_PM_STATE_NORMAL ||
-		            pm_state == VCONFKEY_PM_STATE_LCDOFF) )
-#endif
 	if (pm_state == VCONFKEY_PM_STATE_NORMAL ||
 		pm_state == VCONFKEY_PM_STATE_LCDOFF)
 	{
-		net_nfc_server_restart_polling_loop();
+		if (is_screen_state_on == true) {
+			net_nfc_server_restart_polling_loop();
+		}
 	}
 }
 
@@ -115,6 +99,76 @@ static void net_nfc_server_vconf_se_type_changed(keynode_t *key,
 						void *user_data)
 {
 	net_nfc_server_se_policy_apply();
+
+	net_nfc_server_route_table_do_update(net_nfc_server_manager_get_active());
+}
+
+static void net_nfc_server_vconf_wallet_mode_changed(keynode_t *key,
+						void *user_data)
+{
+	int wallet_mode;
+
+	g_assert(key != NULL);
+
+	wallet_mode = key->value.i;
+
+	DEBUG_SERVER_MSG("wallet mode [%d]", wallet_mode);
+
+	net_nfc_server_se_change_wallet_mode(wallet_mode);
+
+	net_nfc_server_route_table_do_update(net_nfc_server_manager_get_active());
+}
+
+static void __on_payment_handler_changed_func(gpointer user_data)
+{
+	char *package = (char *)user_data;
+
+	SECURE_MSG("PAYMENT handler changed, [%s]", package);
+
+	net_nfc_server_route_table_update_category_handler(package,
+		NET_NFC_CARD_EMULATION_CATEGORY_PAYMENT);
+
+	if (package != NULL) {
+		g_free(package);
+	}
+}
+
+static void net_nfc_server_vconf_payment_handlers_changed(keynode_t *key,
+	void *user_data)
+{
+	g_assert(key != NULL);
+
+	if (net_nfc_server_controller_async_queue_push(
+		__on_payment_handler_changed_func,
+		g_strdup(key->value.s)) == false) {
+		DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+	}
+}
+
+static void __on_other_handlers_changed_func(gpointer user_data)
+{
+	char *packages = (char *)user_data;
+
+	SECURE_MSG("OTHER handlers changed, [%s]", packages);
+
+	net_nfc_server_route_table_update_category_handler(packages,
+		NET_NFC_CARD_EMULATION_CATEGORY_OTHER);
+
+	if (packages != NULL) {
+		g_free(packages);
+	}
+}
+
+static void net_nfc_server_vconf_other_handlers_changed(keynode_t *key,
+	void *user_data)
+{
+	g_assert(key != NULL);
+
+	if (net_nfc_server_controller_async_queue_push(
+		__on_other_handlers_changed_func,
+		g_strdup(key->value.s)) == false) {
+		DEBUG_ERR_MSG("net_nfc_server_controller_async_queue_push failed");
+	}
 }
 
 void net_nfc_server_vconf_init(void)
@@ -131,6 +185,18 @@ void net_nfc_server_vconf_init(void)
 	vconf_notify_key_changed(VCONFKEY_NFC_SE_TYPE,
 			net_nfc_server_vconf_se_type_changed,
 			NULL);
+
+	vconf_notify_key_changed(VCONFKEY_NFC_WALLET_MODE,
+			net_nfc_server_vconf_wallet_mode_changed,
+			NULL);
+
+	vconf_notify_key_changed(VCONFKEY_NFC_PAYMENT_HANDLERS,
+			net_nfc_server_vconf_payment_handlers_changed,
+			NULL);
+
+	vconf_notify_key_changed(VCONFKEY_NFC_OTHER_HANDLERS,
+			net_nfc_server_vconf_other_handlers_changed,
+			NULL);
 }
 
 void net_nfc_server_vconf_deinit(void)
@@ -140,6 +206,15 @@ void net_nfc_server_vconf_deinit(void)
 
 	vconf_ignore_key_changed(VCONFKEY_NFC_SE_TYPE,
 			net_nfc_server_vconf_se_type_changed);
+
+	vconf_ignore_key_changed(VCONFKEY_NFC_WALLET_MODE,
+			net_nfc_server_vconf_wallet_mode_changed);
+
+	vconf_ignore_key_changed(VCONFKEY_NFC_PAYMENT_HANDLERS,
+			net_nfc_server_vconf_payment_handlers_changed);
+
+	vconf_ignore_key_changed(VCONFKEY_NFC_OTHER_HANDLERS,
+			net_nfc_server_vconf_other_handlers_changed);
 }
 
 bool net_nfc_check_csc_vconf(void)
@@ -178,6 +253,22 @@ bool net_nfc_check_start_polling_vconf(void)
 	DEBUG_SERVER_MSG("lock_screen_set:%d ,pm_state:%d,lock_state:%d",
 		lock_screen_set , pm_state , lock_state);
 
+	if (lock_screen_set == SETTING_SCREEN_LOCK_TYPE_NONE)
+	{
+		if (pm_state == VCONFKEY_PM_STATE_NORMAL)
+		{
+			DEBUG_SERVER_MSG("polling enable");
+			return TRUE;
+		}
+
+		if (pm_state == VCONFKEY_PM_STATE_LCDOFF)
+		{
+			DEBUG_SERVER_MSG("polling disabled");
+			return FALSE;
+		}
+	}
+	else
+	{
 		if (lock_state == VCONFKEY_IDLE_UNLOCK)
 		{
 			DEBUG_SERVER_MSG("polling enable");
@@ -189,6 +280,12 @@ bool net_nfc_check_start_polling_vconf(void)
 			DEBUG_SERVER_MSG("polling disabled");
 			return FALSE;
 		}
+	}
 
 	return FALSE;
+}
+
+void net_nfc_server_vconf_set_screen_on_flag(bool flag)
+{
+	is_screen_state_on = flag;
 }

@@ -19,6 +19,8 @@
 
 #include "net_nfc_typedef_internal.h"
 
+#define NET_NFC_HCE_SERVER_DOMAIN		"/tmp/.nfc-hce.sock"
+
 #define NET_NFC_HCE_INS_SELECT			(uint8_t)0xA4
 #define NET_NFC_HCE_INS_READ_BINARY		(uint8_t)0xB0
 #define NET_NFC_HCE_INS_UPDATE_BINARY		(uint8_t)0xD6
@@ -68,5 +70,14 @@ net_nfc_error_e net_nfc_util_hce_extract_parameter(data_s *apdu,
 
 net_nfc_error_e net_nfc_util_hce_generate_apdu(net_nfc_apdu_data_t *apdu_data,
 	data_s **apdu);
+
+typedef struct _net_nfc_hce_data_t
+{
+	uint32_t type;
+	uint32_t handle;
+	uint8_t data[0];
+}
+net_nfc_hce_data_t;
+
 
 #endif //__NET_NFC_UTIL_HCE_H__

@@ -79,7 +79,7 @@ static void _process_carrier_record_cb(net_nfc_error_e result,
 
 	if (result == NET_NFC_OK)
 	{
-		INFO_MSG("process carrier record success");
+		DEBUG_SERVER_MSG("process carrier record success");
 	}
 	else
 	{
@@ -155,6 +155,11 @@ static net_nfc_error_e __process_ch_message(net_nfc_ch_message_s *message,
 
 				net_nfc_server_handover_emit_started_signal(NULL, temp);
 
+				/*Implement to connct with wifi direct*/
+				net_nfc_server_handover_wfd_do_pairing(
+					carrier,
+					_process_carrier_record_cb,
+					temp);
 			}
 		}
 	}
@@ -817,7 +822,7 @@ void net_nfc_app_util_aul_launch_app(char* package_name, bundle* kb)
 	}
 	else
 	{
-		DEBUG_SERVER_MSG("success to launch [%s]", package_name);
+		SECURE_MSG("success to launch [%s]", package_name);
 	}
 }
 
@@ -833,25 +838,25 @@ int net_nfc_app_util_appsvc_launch(const char *operation, const char *uri, const
 
 	if (operation != NULL && strlen(operation) > 0)
 	{
-		DEBUG_SERVER_MSG("operation : %s", operation);
+		SECURE_MSG("operation : %s", operation);
 		appsvc_set_operation(bd, operation);
 	}
 
 	if (uri != NULL && strlen(uri) > 0)
 	{
-		DEBUG_SERVER_MSG("uri : %s", uri);
+		SECURE_MSG("uri : %s", uri);
 		appsvc_set_uri(bd, uri);
 	}
 
 	if (mime != NULL && strlen(mime) > 0)
 	{
-		DEBUG_SERVER_MSG("mime : %s", mime);
+		SECURE_MSG("mime : %s", mime);
 		appsvc_set_mime(bd, mime);
 	}
 
 	if (data != NULL && strlen(data) > 0)
 	{
-		DEBUG_SERVER_MSG("data : %s", data);
+		SECURE_MSG("data : %s", data);
 		appsvc_add_data(bd, "data", data);
 	}
 
@@ -940,7 +945,7 @@ int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_
 				break;
 		}
 
-		DEBUG_SERVER_MSG("aid_string : %s", aid_string);
+		SECURE_MSG("aid_string : %s", aid_string);
 		appsvc_set_uri(bd, aid_string);
 	}
 
@@ -951,7 +956,61 @@ int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_
 
 		net_nfc_util_binary_to_hex_string(&temp, param_string, sizeof(param_string));
 
-		DEBUG_SERVER_MSG("param_string : %s", param_string);
+		SECURE_MSG("param_string : %s", param_string);
+		appsvc_add_data(bd, "data", param_string);
+	}
+
+	appsvc_run_service(bd, 0, NULL, NULL);
+
+	bundle_free(bd);
+
+	return 0;
+}
+
+int net_nfc_app_util_launch_se_off_host_apdu_service_app(net_nfc_se_type_e se_type, uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
+{
+	bundle *bd = NULL;
+
+	/* launch */
+	bd = bundle_create();
+
+	appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc/card_emulation/off_host_apdu_service");
+
+	/* convert aid to aid string */
+	if (aid != NULL && aid_len > 0)
+	{
+		char temp_string[1024] = { 0, };
+		char aid_string[1024] = { 0, };
+		data_s temp = { aid, aid_len };
+
+		net_nfc_util_binary_to_hex_string(&temp, temp_string, sizeof(temp_string));
+
+		switch(se_type)
+		{
+			case NET_NFC_SE_TYPE_UICC:
+				snprintf(aid_string, sizeof(aid_string), "nfc://secure/SIM1/aid/%s", temp_string);
+				break;
+
+			case NET_NFC_SE_TYPE_ESE:
+				snprintf(aid_string, sizeof(aid_string), "nfc://secure/eSE/aid/%s", temp_string);
+				break;
+			default:
+				snprintf(aid_string, sizeof(aid_string), "nfc://secure/aid/%s", temp_string);
+				break;
+		}
+
+		SECURE_MSG("aid_string : %s", aid_string);
+		appsvc_set_uri(bd, aid_string);
+	}
+
+	if (param != NULL && param_len > 0)
+	{
+		char param_string[1024] = { 0, };
+		data_s temp = { param, param_len };
+
+		net_nfc_util_binary_to_hex_string(&temp, param_string, sizeof(param_string));
+
+		SECURE_MSG("param_string : %s", param_string);
 		appsvc_add_data(bd, "data", param_string);
 	}
 

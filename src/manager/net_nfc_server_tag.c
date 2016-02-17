@@ -294,7 +294,7 @@ static data_s *_get_barcode_from_target_info(net_nfc_current_target_info_s *targ
 
 		memcpy(str, pos, length);
 
-		DEBUG_CLIENT_MSG("key = [%s]", str);
+		SECURE_MSG("key = [%s]", str);
 
 		pos += length;
 
@@ -466,7 +466,23 @@ static void tag_get_current_tag_info_thread_func(gpointer user_data)
 
 static bool _is_supported_tags(net_nfc_current_target_info_s *target)
 {
-	return true;
+	bool result;
+
+	switch (target->devType) {
+	case NET_NFC_ISO14443_3A_PICC :
+	case NET_NFC_MIFARE_MINI_PICC :
+	case NET_NFC_MIFARE_1K_PICC :
+	case NET_NFC_MIFARE_4K_PICC :
+	case NET_NFC_ISO14443_BPRIME_PICC :
+		result = false;
+		break;
+
+	default :
+		result = true;
+		break;
+	}
+
+	return result;
 }
 
 static void _start_check_presence(net_nfc_current_target_info_s *target)
@@ -474,7 +490,7 @@ static void _start_check_presence(net_nfc_current_target_info_s *target)
 	CheckPresenceData *presence_data = NULL;
 
 	/* start polling tags presence */
-	INFO_MSG("start polling tags presence");
+	DEBUG_SERVER_MSG("start polling tags presence");
 
 	presence_data = g_new0(CheckPresenceData, 1);
 	presence_data->dev_type = target->devType;

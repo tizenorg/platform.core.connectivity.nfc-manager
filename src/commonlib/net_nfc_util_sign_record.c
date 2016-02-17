@@ -337,7 +337,7 @@ net_nfc_error_e net_nfc_util_sign_records(ndef_message_s *msg, int begin_index, 
 	/* get target data */
 	_get_records_data_buffer(begin_record, end_record->next, &data_buffer, &data_len);
 
-	DEBUG_MSG_PRINT_BUFFER(data_buffer, data_len);
+//	DEBUG_MSG_PRINT_BUFFER(data_buffer, data_len);
 
 	net_nfc_util_openssl_sign_buffer(NET_NFC_SIGN_TYPE_PKCS_1, data_buffer, data_len, cert_file, password, signature, &sign_len);
 

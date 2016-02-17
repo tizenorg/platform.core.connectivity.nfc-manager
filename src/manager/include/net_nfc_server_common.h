@@ -50,6 +50,9 @@ void net_nfc_server_restart_polling_loop(void);
 
 void net_nfc_server_force_polling_loop(void);
 
+void net_nfc_server_quit_nfc_manager_loop(void);
+
+
 void net_nfc_server_set_state(guint32 state);
 
 void net_nfc_server_unset_state(guint32 state);
@@ -58,5 +61,8 @@ guint32 net_nfc_server_get_state(void);
 
 void net_nfc_server_controller_run_dispatch_loop();
 void net_nfc_server_controller_quit_dispatch_loop();
+
+void net_nfc_server_controller_init_sync();
+
 
 #endif //__NET_NFC_SERVER_COMMON_H__

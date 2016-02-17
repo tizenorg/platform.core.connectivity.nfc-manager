@@ -104,6 +104,10 @@ typedef bool (*net_nfc_oem_controller_secure_element_set_route_entry)
 typedef bool (*net_nfc_oem_controller_secure_element_clear_routing_entry)
 	(net_nfc_se_entry_type_e type, net_nfc_error_e *result);
 
+typedef bool (*net_nfc_oem_controller_secure_element_set_listen_tech_mask)
+	(net_nfc_se_tech_protocol_type_e screen_state, net_nfc_error_e *result);
+
+
 typedef bool (*net_nfc_oem_controller_set_screen_state)
 	(net_nfc_screen_state_type_e screen_state, net_nfc_error_e *result);
 
@@ -180,6 +184,8 @@ typedef struct _net_nfc_oem_interface_s
 
 	net_nfc_oem_controller_secure_element_set_route_entry set_routing_entry;
 	net_nfc_oem_controller_secure_element_clear_routing_entry clear_routing_entry;
+	net_nfc_oem_controller_secure_element_set_listen_tech_mask set_listen_tech_mask;
+
 	net_nfc_oem_controller_set_screen_state set_screen_state;
 } net_nfc_oem_interface_s;
 

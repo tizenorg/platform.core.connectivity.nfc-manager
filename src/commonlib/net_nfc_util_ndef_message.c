@@ -541,33 +541,33 @@ void net_nfc_util_print_ndef_message(ndef_message_s *msg)
 	}
 
 	//                123456789012345678901234567890123456789012345678901234567890
-	DEBUG_MSG("========== NDEF Message ====================================\n");
-	DEBUG_MSG("Total NDEF Records count: %d\n", msg->recordCount);
+	DEBUG_MSG("========== NDEF Message ====================================");
+	DEBUG_MSG("Total NDEF Records count: %d", msg->recordCount);
 	current = msg->records;
 	for (idx = 0; idx < msg->recordCount; idx++)
 	{
 		if (current == NULL)
 		{
 			DEBUG_ERR_MSG("Message Record is NULL!! unexpected error");
-			DEBUG_MSG("============================================================\n");
+			DEBUG_MSG("============================================================");
 			return;
 		}
-		DEBUG_MSG("---------- Record -----------------------------------------\n");
-		DEBUG_MSG("MB:%d ME:%d CF:%d SR:%d IL:%d TNF:0x%02X\n",
+		DEBUG_MSG("---------- Record -----------------------------------------");
+		DEBUG_MSG("MB:%d ME:%d CF:%d SR:%d IL:%d TNF:0x%02X",
 			current->MB, current->ME, current->CF, current->SR, current->IL, current->TNF);
-		DEBUG_MSG("TypeLength:%d  PayloadLength:%d  IDLength:%d\n",
+		DEBUG_MSG("TypeLength:%d  PayloadLength:%d  IDLength:%d",
 			current->type_s.length, current->payload_s.length, current->id_s.length);
 		if (current->type_s.buffer != NULL)
 		{
 			memcpy(buffer, current->type_s.buffer, current->type_s.length);
 			buffer[current->type_s.length] = '\0';
-			DEBUG_MSG("Type: %s\n", buffer);
+			DEBUG_MSG("Type: %s", buffer);
 		}
 		if (current->id_s.buffer != NULL)
 		{
 			memcpy(buffer, current->id_s.buffer, current->id_s.length);
 			buffer[current->id_s.length] = '\0';
-			SECURE_LOGD("ID: %s\n", buffer);
+			SECURE_LOGD("ID: %s", buffer);
 		}
 		if (current->payload_s.buffer != NULL)
 		{
@@ -575,15 +575,15 @@ void net_nfc_util_print_ndef_message(ndef_message_s *msg)
 			for (idx2 = 0; idx2 < current->payload_s.length; idx2++)
 			{
 				if (idx2 % 16 == 0)
-					DEBUG_MSG("\n\t");
+					DEBUG_MSG("\t");
 				DEBUG_MSG("%02X ", current->payload_s.buffer[idx2]);
 			}
-			DEBUG_MSG("\n");
+			DEBUG_MSG("");
 		}
 		current = current->next;
 	}
 	//                123456789012345678901234567890123456789012345678901234567890
-	DEBUG_MSG("============================================================\n");
+	DEBUG_MSG("============================================================");
 
 }
 

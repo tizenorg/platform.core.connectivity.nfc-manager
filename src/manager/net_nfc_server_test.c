@@ -54,6 +54,17 @@ struct _TestSetEeData
 	data_s data;
 };
 
+typedef struct _TestSetListenTechData TestSetListenTechData;
+
+struct _TestSetListenTechData
+{
+	NetNfcGDbusTest *test;
+	GDBusMethodInvocation *invocation;
+
+	guint32 mode;
+};
+
+
 static void test_handle_sim_test_thread_func(gpointer user_data);
 
 static void test_handle_prbs_test_thread_func(gpointer user_data);
@@ -351,7 +362,7 @@ static gboolean test_handle_get_firmware_version(NetNfcGDbusTest *test,
 
 	INFO_MSG(">>> REQUEST from [%s]",
 		g_dbus_method_invocation_get_sender(invocation));
-
+#if 0
 	/* check privilege and update client context */
 	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
 		DEBUG_ERR_MSG("permission denied, and finished request");
@@ -359,7 +370,7 @@ static gboolean test_handle_get_firmware_version(NetNfcGDbusTest *test,
 
 		goto ERROR;
 	}
-
+#endif
 	data = g_try_new0(TestData, 1);
 	if (data == NULL)
 	{
@@ -602,6 +613,89 @@ ERROR :
 	return TRUE;
 }
 
+static void test_set_listen_tech_mask_thread_func(gpointer user_data)
+{
+	TestSetListenTechData *data = (TestSetListenTechData *)user_data;
+	net_nfc_error_e result = NET_NFC_OK;
+
+	g_assert(data != NULL);
+	g_assert(data->test != NULL);
+	g_assert(data->invocation != NULL);
+
+	DEBUG_SERVER_MSG(">>> Call test_set_listen_tech_mask_thread_func");
+
+	net_nfc_controller_secure_element_set_listen_tech_mask(data->mode, &result);
+
+	net_nfc_gdbus_test_complete_set_listen_tech_mask(
+		data->test, data->invocation, result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->test);
+
+	g_free(data);
+}
+
+static gboolean test_handle_set_listen_tech_mask(
+	NetNfcGDbusTest *test,
+	GDBusMethodInvocation *invocation,
+	guint listen_tech_mask,
+	GVariant *smack_privilege)
+{
+	TestSetListenTechData *data = NULL;
+	gint result;
+
+	INFO_MSG(">>> REQUEST from [%s]",
+		g_dbus_method_invocation_get_sender(invocation));
+
+	/* check privilege and update client context */
+	if (net_nfc_server_gdbus_check_privilege(invocation, NET_NFC_PRIVILEGE_NFC) == false) {
+		DEBUG_ERR_MSG("permission denied, and finished request");
+		result = NET_NFC_PERMISSION_DENIED;
+
+		goto ERROR;
+	}
+
+	data = g_try_new0(TestSetListenTechData, 1);
+	if (data == NULL)
+	{
+		DEBUG_ERR_MSG("Memory allocation failed");
+		result = NET_NFC_ALLOC_FAIL;
+
+		goto ERROR;
+	}
+
+	data->test = g_object_ref(test);
+	data->invocation = g_object_ref(invocation);
+	data->mode = listen_tech_mask;
+
+	if (net_nfc_server_controller_async_queue_push_force(
+		test_set_listen_tech_mask_thread_func, data) == FALSE)
+	{
+		/* return error if queue was blocked */
+		DEBUG_SERVER_MSG("controller is processing important message..");
+		result = NET_NFC_BUSY;
+
+		goto ERROR;
+	}
+
+	return TRUE;
+
+ERROR :
+
+	net_nfc_gdbus_test_complete_set_listen_tech_mask(
+		test, invocation, result);
+
+	if (data != NULL) {
+		g_object_unref(data->invocation);
+		g_object_unref(data->test);
+
+		g_free(data);
+	}
+
+	return TRUE;
+}
+
+
 gboolean net_nfc_server_test_init(GDBusConnection *connection)
 {
 	GError *error = NULL;
@@ -640,6 +734,11 @@ gboolean net_nfc_server_test_init(GDBusConnection *connection)
 	g_signal_connect(test_skeleton,
 			"handle-set-se-tech-type",
 			G_CALLBACK(test_handle_set_se_tech_type),
+			NULL);
+
+	g_signal_connect(test_skeleton,
+			"handle-set-listen-tech-mask",
+			G_CALLBACK(test_handle_set_listen_tech_mask),
 			NULL);
 
 	result = g_dbus_interface_skeleton_export(

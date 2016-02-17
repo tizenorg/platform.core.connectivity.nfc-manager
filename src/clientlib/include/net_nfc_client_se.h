@@ -76,7 +76,7 @@ typedef bool (*net_nfc_client_se_registered_aid_cb)(net_nfc_se_type_e se_type,
 	const char *aid, bool readonly, void *user_data);
 
 typedef bool (*net_nfc_client_se_registered_handler_cb)(const char *package,
-	void *user_data);
+	int count, void *user_data);
 
 /************* Secure Element API's*************/
 
@@ -213,6 +213,15 @@ net_nfc_error_e net_nfc_client_se_foreach_registered_handlers_sync(
 	net_nfc_card_emulation_category_t category,
 	net_nfc_client_se_registered_handler_cb callback,
 	void *user_data);
+
+net_nfc_error_e net_nfc_client_se_get_handler_storage_info_sync(
+	net_nfc_card_emulation_category_t category, int *used, int *max);
+
+net_nfc_error_e net_nfc_client_se_get_conflict_handlers_sync(
+	const char *package, net_nfc_card_emulation_category_t category,
+	const char *aid, char ***handlers);
+
+net_nfc_error_e net_nfc_client_se_set_preferred_handler_sync(bool state);
 
 //net_nfc_error_e net_nfc_client_hce_get_route_table_sync(data_h arg_aid);
 

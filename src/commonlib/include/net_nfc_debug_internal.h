@@ -211,6 +211,24 @@ const char *net_nfc_get_log_tag();
 		}\
 	} while(0)
 
+#define SECURE_MSG(format, args...) \
+	do {\
+		SECURE_LOGD(format, ##args);\
+		if (nfc_log_file) \
+		{ \
+			struct tm *local_tm; \
+			char timeBuf[50]; \
+			time_t rawtime;   time (&rawtime); \
+			local_tm = localtime(&rawtime); \
+			if(local_tm != NULL) { \
+				strftime(timeBuf, sizeof(timeBuf), "%m-%d %H:%M:%S", local_tm); \
+				fprintf(nfc_log_file, "\n%s",timeBuf); \
+				fprintf(nfc_log_file, "[W][%s:%d] "format"",__func__, __LINE__,  ##args); \
+				fflush(nfc_log_file);\
+			} \
+		}\
+	} while(0)
+
 #define PROFILING(str) \
 	do{ \
 		struct timeval mytime;\

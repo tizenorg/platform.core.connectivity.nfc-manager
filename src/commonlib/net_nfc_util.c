@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <glib.h>
+#include <systemd/sd-daemon.h>
 
 // platform header
 #include "aul.h"
@@ -331,7 +332,7 @@ net_nfc_conn_handover_carrier_state_e net_nfc_util_get_cps(net_nfc_conn_handover
 	{
 		int wifi_state = 0;
 
-		vconf_get_int(VCONFKEY_WIFI_STATE, &wifi_state);
+		(void)vconf_get_int(VCONFKEY_WIFI_STATE, &wifi_state);
 
 		switch (wifi_state)
 		{
@@ -752,4 +753,17 @@ bool net_nfc_util_binary_to_hex_string(data_s *data, char *out_buf, uint32_t max
 	}
 
 	return true;
+}
+
+int net_nfc_util_get_fd_from_systemd()
+{
+	int n = sd_listen_fds(0);
+	int fd;
+
+	for(fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+n; ++fd) {
+		if (0 < sd_is_socket_unix(fd, SOCK_STREAM, 1, "/tmp/.nfc-hce.sock", 0)) {
+			return fd;
+		}
+	}
+	return -1;
 }

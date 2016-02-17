@@ -24,6 +24,7 @@
 #include <errno.h>
 
 #include <dd-display.h>/*for pm lock*/
+#include <device/power.h>
 
 #include "net_nfc_oem_controller.h"
 #include "net_nfc_controller_internal.h"
@@ -49,7 +50,7 @@ static void *net_nfc_controller_load_file(const char *dir_path,
 	bool (*onload)(net_nfc_oem_interface_s *interfaces);
 
 	snprintf(path, PATH_MAX, "%s/%s", dir_path, filename);
-	DEBUG_SERVER_MSG("path : %s", path);
+	SECURE_MSG("path : %s", path);
 
 	if (stat(path, &st) == -1) {
 		DEBUG_ERR_MSG("stat failed : file not found");
@@ -109,7 +110,7 @@ void *net_nfc_controller_onload()
 	dirp = opendir(NFC_MANAGER_MODULEDIR);
 	if (dirp == NULL)
 	{
-		DEBUG_ERR_MSG("Can not open directory %s",
+		SECURE_MSG("Can not open directory %s",
 				NFC_MANAGER_MODULEDIR);
 		return NULL;
 	}
@@ -150,13 +151,13 @@ void *net_nfc_controller_onload()
 
 	if (handle)
 	{
-		DEBUG_SERVER_MSG("loaded default plugin : %s",
+		SECURE_MSG("loaded default plugin : %s",
 				NET_NFC_DEFAULT_PLUGIN);
 		return handle;
 	}
 	else
 	{
-		DEBUG_ERR_MSG("can not load default plugin : %s",
+		SECURE_MSG("can not load default plugin : %s",
 				NET_NFC_DEFAULT_PLUGIN);
 		return NULL;
 	}
@@ -331,16 +332,21 @@ bool net_nfc_controller_set_secure_element_mode(net_nfc_secure_element_type_e el
 
 bool net_nfc_controller_secure_element_open(net_nfc_secure_element_type_e element_type, net_nfc_target_handle_s **handle, net_nfc_error_e *result)
 {
-	int ret_val = 0;
-
-	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
-	if (ret_val < 0) {
-		DEBUG_ERR_MSG("display_lock_state failed, [%d]", ret_val);
-	}
-
 	if (g_interface.secure_element_open != NULL)
 	{
-		return g_interface.secure_element_open(element_type, handle, result);
+		bool ret;
+
+		ret = g_interface.secure_element_open(element_type, handle, result);
+		if (ret == true) {
+			int ret_val;
+
+			ret_val = device_power_request_lock(POWER_LOCK_CPU, 300000);
+			if (ret_val < 0) {
+				DEBUG_ERR_MSG("device_power_request_lock failed, [%d]", ret_val);
+			}
+		}
+
+		return ret;
 	}
 	else
 	{
@@ -380,11 +386,11 @@ bool net_nfc_controller_secure_element_send_apdu(net_nfc_target_handle_s *handle
 
 bool net_nfc_controller_secure_element_close(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
 {
-	int ret_val = 0;
+	int ret_val;
 
-	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
+	ret_val = device_power_release_lock(POWER_LOCK_CPU);
 	if (ret_val < 0) {
-		DEBUG_ERR_MSG("display_unlock_state failed, [%d]", ret_val);
+		DEBUG_ERR_MSG("device_power_release_lock failed, [%d]", ret_val);
 	}
 
 	if (g_interface.secure_element_close != NULL)
@@ -415,15 +421,21 @@ bool net_nfc_controller_check_target_presence(net_nfc_target_handle_s *handle, n
 
 bool net_nfc_controller_connect(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
 {
-	int ret_val = 0;
-
-	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
-
-	DEBUG_SERVER_MSG("net_nfc_controller_connect display_lock_state [%d]!!", ret_val);
-
 	if (g_interface.connect != NULL)
 	{
-		return g_interface.connect(handle, result);
+		bool ret;
+
+		ret = g_interface.connect(handle, result);
+		if (ret == true) {
+			int ret_val = 0;
+
+			ret_val = device_power_request_lock(POWER_LOCK_CPU, 20000);
+			if (ret_val < 0) {
+				DEBUG_ERR_MSG("device_power_request_lock failed, [%d]", ret_val);
+			}
+		}
+
+		return ret;
 	}
 	else
 	{
@@ -435,11 +447,12 @@ bool net_nfc_controller_connect(net_nfc_target_handle_s *handle, net_nfc_error_e
 
 bool net_nfc_controller_disconnect(net_nfc_target_handle_s *handle, net_nfc_error_e *result)
 {
-	int ret_val = 0;
+	int ret_val;
 
-	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-
-	DEBUG_ERR_MSG("net_nfc_controller_disconnect display_lock_state [%d]!!", ret_val);
+	ret_val = device_power_release_lock(POWER_LOCK_CPU);
+	if (ret_val < 0) {
+		DEBUG_ERR_MSG("device_power_release_lock failed, [%d]", ret_val);
+	}
 
 	if (g_interface.disconnect != NULL)
 	{
@@ -844,12 +857,7 @@ void net_nfc_controller_llcp_connected_cb(net_nfc_llcp_socket_t socket,
 
 bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle, net_nfc_llcp_socket_t socket, uint8_t *service_access_name, net_nfc_error_e *result, net_nfc_service_llcp_cb cb, void *user_param)
 {
-	int ret_val = 0;
 	bool ret;
-
-	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
-
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect_by_url display_lock_state [%d]!!", ret_val);
 
 	if (g_interface.connect_llcp_by_url != NULL)
 	{
@@ -867,9 +875,17 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle, net
 		param->user_param = user_param;
 
 		ret = g_interface.connect_llcp_by_url(handle, socket, service_access_name, result, param);
-		if (ret != true) {
+		if (ret == true) {
+			int ret_val;
+
+			ret_val = device_power_request_lock(POWER_LOCK_CPU, 20000);
+			if (ret_val < 0) {
+				DEBUG_ERR_MSG("device_power_request_lock failed, [%d]", ret_val);
+			}
+		} else {
 			_remove_socket_info(socket);
 		}
+
 		return ret;
 	}
 	else
@@ -882,14 +898,9 @@ bool net_nfc_controller_llcp_connect_by_url(net_nfc_target_handle_s *handle, net
 
 bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle, net_nfc_llcp_socket_t socket, uint8_t service_access_point, net_nfc_error_e *result, net_nfc_service_llcp_cb cb, void *user_param)
 {
-	int ret_val = 0;
-
-	ret_val = display_lock_state(LCD_NORMAL, GOTO_STATE_NOW, 0);
-
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_connect display_lock_state [%d]!!", ret_val);
-
 	if (g_interface.connect_llcp != NULL)
 	{
+		bool ret;
 		net_nfc_llcp_param_t *param = NULL;
 
 		_net_nfc_util_alloc_mem(param, sizeof(*param));
@@ -903,7 +914,17 @@ bool net_nfc_controller_llcp_connect(net_nfc_target_handle_s *handle, net_nfc_ll
 		param->cb = cb;
 		param->user_param = user_param;
 
-		return g_interface.connect_llcp(handle, socket, service_access_point, result, param);
+		ret = g_interface.connect_llcp(handle, socket, service_access_point, result, param);
+		if (ret == true) {
+			int ret_val;
+
+			ret_val = device_power_request_lock(POWER_LOCK_CPU, 20000);
+			if (ret_val < 0) {
+				DEBUG_ERR_MSG("device_power_request_lock failed, [%d]", ret_val);
+			}
+		}
+
+		return ret;
 	}
 	else
 	{
@@ -930,11 +951,12 @@ void net_nfc_controller_llcp_disconnected_cb(net_nfc_llcp_socket_t socket,
 
 bool net_nfc_controller_llcp_disconnect(net_nfc_target_handle_s *handle, net_nfc_llcp_socket_t socket, net_nfc_error_e *result, net_nfc_service_llcp_cb cb, void *user_param)
 {
-	int ret_val = 0;
+	int ret_val;
 
-	ret_val = display_unlock_state(LCD_NORMAL, PM_RESET_TIMER);
-
-	DEBUG_SERVER_MSG("net_nfc_controller_llcp_disconnect display_unlock_state [%d]!!", ret_val);
+	ret_val = device_power_release_lock(POWER_LOCK_CPU);
+	if (ret_val < 0) {
+		DEBUG_ERR_MSG("device_power_release_lock failed, [%d]", ret_val);
+	}
 
 	if (g_interface.disconnect_llcp != NULL)
 	{
@@ -1393,7 +1415,7 @@ bool net_nfc_controller_secure_element_set_route_entry
 	}
 }
 
-bool net_nfc_controller_secure_element_set_clear_routing_entry
+bool net_nfc_controller_secure_element_clear_routing_entry
 	(net_nfc_se_entry_type_e type, net_nfc_error_e *result)
 {
 	if (g_interface.clear_routing_entry != NULL)
@@ -1406,6 +1428,21 @@ bool net_nfc_controller_secure_element_set_clear_routing_entry
 		return false;
 	}
 }
+
+bool net_nfc_controller_secure_element_set_listen_tech_mask(net_nfc_se_tech_protocol_type_e value, net_nfc_error_e *result)
+{
+	if (g_interface.set_listen_tech_mask!= NULL)
+	{
+		return g_interface.set_listen_tech_mask(value , result);
+	}
+	else
+	{
+		*result = NET_NFC_UNKNOWN_ERROR;
+		DEBUG_SERVER_MSG("interface is null");
+		return false;
+	}
+}
+
 
 bool net_nfc_controller_set_screen_state(net_nfc_screen_state_type_e screen_state, net_nfc_error_e *result)
 {

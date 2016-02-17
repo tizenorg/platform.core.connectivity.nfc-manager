@@ -83,9 +83,6 @@ static net_nfc_error_e manager_active(void)
 	/* keep_SE_select_value */
 	result = net_nfc_server_se_apply_se_current_policy();
 
-	/* load aids from database */
-	net_nfc_server_route_table_load_db();
-
 	/* register default snep server */
 	net_nfc_server_snep_default_server_register();
 
@@ -99,7 +96,7 @@ static net_nfc_error_e manager_active(void)
 	net_nfc_addons_init();
 
 	/* update route table */
-	net_nfc_server_route_table_do_update();
+	net_nfc_server_route_table_do_update(true);
 
 	/* current comsume issue for card only model */
 	net_nfc_controller_set_screen_state(NET_NFC_SCREEN_OFF , &result);
@@ -208,17 +205,17 @@ static void manager_handle_active_thread_func(gpointer user_data)
 		data->invocation,
 		result);
 
-	g_object_unref(data->invocation);
-	g_object_unref(data->manager);
-
-	g_free(data);
-
 	/* shutdown process if it doesn't need */
 	if (result == NET_NFC_OK && data->is_active == false &&
 		net_nfc_server_gdbus_is_server_busy() == false) {
 		DEBUG_ERR_MSG("net_nfc_server_controller_deinit");
 		net_nfc_server_controller_deinit();
 	}
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->manager);
+
+	g_free(data);
 }
 
 
@@ -256,6 +253,21 @@ static gboolean manager_handle_set_active(NetNfcGDbusManager *manager,
 	data->manager = g_object_ref(manager);
 	data->invocation = g_object_ref(invocation);
 	data->is_active = arg_is_active;
+
+
+	if (data->is_active == true){
+		net_nfc_error_e check_result;
+		INFO_MSG("Daemon alive, But check the nfc device state.");
+
+		net_nfc_controller_is_ready(&check_result);
+
+		if (check_result != NET_NFC_OK) {
+			INFO_MSG("nfc is not active. so call net_nfc_server_controller_init");
+			net_nfc_server_controller_init();
+		}
+		else
+			INFO_MSG("nfc is already active!!!!!!");
+	}
 
 	if (net_nfc_server_controller_async_queue_push_and_block(
 		manager_handle_active_thread_func, data) == FALSE)
@@ -338,6 +350,21 @@ static void manager_active_thread_func(gpointer user_data)
 		DEBUG_ERR_MSG("activation change failed, [%d]", result);
 	}
 
+	/* shutdown process if it doesn't need */
+	if (result == NET_NFC_OK && data->is_active == false) {
+		DEBUG_ERR_MSG("net_nfc_server_controller_deinit");
+
+		if (net_nfc_controller_deinit() == false)
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_deinit failed");
+
+			/* ADD TEMPORARY ABORT FOR DEBUG */
+			abort();
+			return;
+		}
+
+	}
+
 	g_free(data);
 }
 
@@ -390,6 +417,7 @@ void net_nfc_server_manager_deinit(void)
 void net_nfc_server_manager_set_active(gboolean is_active)
 {
 	ManagerActivationData *data;
+	net_nfc_error_e result;
 
 	if (manager_skeleton == NULL)
 	{
@@ -410,6 +438,21 @@ void net_nfc_server_manager_set_active(gboolean is_active)
 
 	data->manager = g_object_ref(manager_skeleton);
 	data->is_active = is_active;
+
+
+	if (data->is_active == true){
+		INFO_MSG("Daemon alive, But check the nfc device state.");
+
+		net_nfc_controller_is_ready(&result);
+
+		if (result != NET_NFC_OK) {
+			INFO_MSG("nfc is not active. so call net_nfc_server_controller_init");
+			net_nfc_server_controller_init();
+		}
+		else
+			INFO_MSG("nfc is already active!!!!!!");
+	}
+
 
 	if (net_nfc_server_controller_async_queue_push(
 					manager_active_thread_func,

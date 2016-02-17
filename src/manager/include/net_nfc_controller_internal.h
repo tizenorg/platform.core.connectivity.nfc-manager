@@ -120,8 +120,11 @@ bool net_nfc_controller_secure_element_get_aid_table_size(int *AIDTableSize, net
 bool net_nfc_controller_secure_element_set_route_entry
 	(net_nfc_se_entry_type_e type, net_nfc_se_tech_protocol_type_e value, net_nfc_se_type_e route, int power, net_nfc_error_e *result);
 
-bool net_nfc_controller_secure_element_set_clear_routing_entry
+bool net_nfc_controller_secure_element_clear_routing_entry
 	(net_nfc_se_entry_type_e type, net_nfc_error_e *result);
+
+bool net_nfc_controller_secure_element_set_listen_tech_mask
+	(net_nfc_se_tech_protocol_type_e screen_state, net_nfc_error_e *result);
 
 bool net_nfc_controller_set_screen_state
 	(net_nfc_screen_state_type_e screen_state, net_nfc_error_e *result);

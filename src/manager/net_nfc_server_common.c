@@ -162,7 +162,7 @@ static void controller_target_detected_cb(void *info,
 
 	g_assert(info != NULL);
 
-	INFO_MSG("check devType = [%d]", req->devType );
+	DEBUG_SERVER_MSG("check devType = [%d]", req->devType );
 
 	if (req->request_type == NET_NFC_MESSAGE_SERVICE_RESTART_POLLING_LOOP)
 	{
@@ -212,7 +212,7 @@ static void controller_se_transaction_cb(void *info,
 	req->user_param = (uint32_t)user_context;
 
 
-	INFO_MSG("SE Transaction = [%d]", req->request_type );
+	DEBUG_SERVER_MSG("SE Transaction = [%d]", req->request_type );
 
 	switch(req->request_type)
 	{
@@ -228,7 +228,17 @@ static void controller_se_transaction_cb(void *info,
 		net_nfc_server_se_rf_field_on(req);
 		break;
 
+	case NET_NFC_MESSAGE_SE_CONNECTIVITY :
+		net_nfc_server_se_connected(req);
+		break;
+
+	case NET_NFC_MESSAGE_SE_FIELD_OFF :
+		net_nfc_server_se_rf_field_off(req);
+		break;
+
 	default :
+		/* FIXME : should be removed when plugins would be fixed*/
+		_net_nfc_util_free_mem(info);
 		break;
 	}
 }
@@ -363,17 +373,24 @@ static void controller_init_thread_func(gpointer user_data)
 {
 	net_nfc_error_e result;
 
-	if (net_nfc_controller_init(&result) == false)
-	{
-		DEBUG_ERR_MSG("net_nfc_controller_init failed, [%d]", result);
+	net_nfc_controller_is_ready(&result);
 
-		/* ADD TEMPORARY ABORT FOR DEBUG */
-		abort();
-//		net_nfc_manager_quit();
-		return;
+	if(result != NET_NFC_OK) {
+
+		DEBUG_ERR_MSG("net_nfc_controller_is_ready[%d]", result);
+
+		if (net_nfc_controller_init(&result) == false)
+		{
+			DEBUG_ERR_MSG("net_nfc_controller_init failed, [%d]", result);
+
+			/* ADD TEMPORARY ABORT FOR DEBUG */
+			abort();
+	//		net_nfc_manager_quit();
+			return;
+		}
 	}
 
-	INFO_MSG("net_nfc_controller_init success, [%d]", result);
+	DEBUG_SERVER_MSG("net_nfc_controller_init success, [%d]", result);
 
 	if (net_nfc_controller_register_listener(controller_target_detected_cb,
 						controller_se_transaction_cb,
@@ -388,7 +405,7 @@ static void controller_init_thread_func(gpointer user_data)
 		abort();
 	}
 
-	INFO_MSG("net_nfc_contorller_register_listener success");
+	DEBUG_SERVER_MSG("net_nfc_contorller_register_listener success");
 
 	result = net_nfc_server_llcp_set_config(NULL);
 	if (result != NET_NFC_OK)
@@ -400,7 +417,7 @@ static void controller_init_thread_func(gpointer user_data)
 		abort();
 	}
 
-	INFO_MSG("net_nfc_server_llcp_set_config success");
+	DEBUG_SERVER_MSG("net_nfc_server_llcp_set_config success");
 }
 
 #ifndef ESE_ALWAYS_ON
@@ -417,12 +434,11 @@ static void controller_deinit_thread_func(gpointer user_data)
 		return;
 	}
 
-	INFO_MSG("net_nfc_controller_deinit success");
+	DEBUG_SERVER_MSG("net_nfc_controller_deinit success");
 
 	net_nfc_manager_quit();
 }
 #endif
-
 static void restart_polling_loop_thread_func(gpointer user_data)
 {
 	gint state = 0;
@@ -504,6 +520,24 @@ static void force_polling_loop_thread_func(gpointer user_data)
 		DEBUG_SERVER_MSG("force polling is success & set nfc state true");
 	}
 	return;
+}
+
+static void quit_nfc_manager_loop_thread_func(gpointer user_data)
+{
+	gint state;
+
+	if (vconf_get_bool(VCONFKEY_NFC_STATE, &state) != 0)
+	{
+		DEBUG_SERVER_MSG("VCONFKEY_NFC_STATE is not exist");
+
+	}
+	else
+	{
+		if (state != VCONFKEY_NFC_STATE_ON)
+			net_nfc_manager_quit();
+		else
+			DEBUG_SERVER_MSG("NFC is ON!! No kill daemon!!");
+	}
 }
 
 gboolean net_nfc_server_controller_thread_init(void)
@@ -666,7 +700,7 @@ void net_nfc_server_controller_run_dispatch_loop()
 		return;
 	}
 
-	WARN_MSG("START DISPATCH LOOP");
+	DEBUG_SERVER_MSG("START DISPATCH LOOP");
 
 	controller_dispath_running = TRUE;
 	while (controller_is_running && controller_dispath_running)
@@ -675,7 +709,7 @@ void net_nfc_server_controller_run_dispatch_loop()
 
 		func_data = g_async_queue_try_pop(controller_async_queue);
 		if (func_data != NULL) {
-			WARN_MSG("DISPATCHED!!!");
+			DEBUG_SERVER_MSG("DISPATCHED!!!");
 			if (func_data->func)
 				func_data->func(func_data->data);
 
@@ -685,7 +719,7 @@ void net_nfc_server_controller_run_dispatch_loop()
 		}
 	}
 
-	WARN_MSG("STOP DISPATCH LOOP");
+	DEBUG_SERVER_MSG("STOP DISPATCH LOOP");
 }
 
 void net_nfc_server_controller_quit_dispatch_loop()
@@ -713,6 +747,16 @@ void net_nfc_server_force_polling_loop(void)
 	}
 }
 
+void net_nfc_server_quit_nfc_manager_loop(void)
+{
+	if (net_nfc_server_controller_async_queue_push_force(
+					quit_nfc_manager_loop_thread_func,
+					NULL) == FALSE)
+	{
+		DEBUG_ERR_MSG("Failed to push onto the queue");
+	}
+}
+
 void net_nfc_server_set_state(guint32 state)
 {
 	if (state == NET_NFC_SERVER_IDLE)
@@ -730,3 +774,48 @@ guint32 net_nfc_server_get_state(void)
 {
 	return server_state;
 }
+
+void net_nfc_server_controller_init_sync(void)
+{
+	net_nfc_error_e result;
+
+	if (net_nfc_controller_init(&result) == false)
+	{
+		DEBUG_ERR_MSG("net_nfc_controller_init failed, [%d]", result);
+
+		/* ADD TEMPORARY ABORT FOR DEBUG */
+		abort();
+//		net_nfc_manager_quit();
+		return;
+	}
+
+	DEBUG_SERVER_MSG("net_nfc_controller_init success, [%d]", result);
+
+	if (net_nfc_controller_register_listener(controller_target_detected_cb,
+						controller_se_transaction_cb,
+						controller_llcp_event_cb,
+						controller_hce_apdu_cb,
+						&result) == false)
+	{
+		DEBUG_ERR_MSG("net_nfc_contorller_register_listener failed [%d]",
+				result);
+
+		/* ADD TEMPORARY ABORT FOR DEBUG */
+		abort();
+	}
+
+	DEBUG_SERVER_MSG("net_nfc_contorller_register_listener success");
+
+	result = net_nfc_server_llcp_set_config(NULL);
+	if (result != NET_NFC_OK)
+	{
+		DEBUG_ERR_MSG("net_nfc_server_llcp_set config failed, [%d]",
+			result);
+
+		/* ADD TEMPORARY ABORT FOR DEBUG */
+		abort();
+	}
+
+	DEBUG_SERVER_MSG("net_nfc_server_llcp_set_config success");
+}
+

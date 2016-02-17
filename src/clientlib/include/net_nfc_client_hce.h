@@ -45,6 +45,9 @@ net_nfc_error_e net_nfc_client_hce_response_apdu_sync(
 net_nfc_error_e net_nfc_client_hce_init(void);
 void net_nfc_client_hce_deinit(void);
 
+void net_nfc_client_hce_process_received_event(int event,
+	net_nfc_target_handle_h handle, data_h data);
+
 #ifdef __cplusplus
 }
 #endif

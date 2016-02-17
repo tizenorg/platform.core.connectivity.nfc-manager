@@ -46,4 +46,7 @@ void net_nfc_server_hce_deinit(void);
 
 void net_nfc_server_hce_apdu_received(void *info);
 
+void net_nfc_server_hce_handle_send_apdu_response(
+	net_nfc_target_handle_s *handle, data_s *response);
+
 #endif //__NET_NFC_SERVER_SE_H__

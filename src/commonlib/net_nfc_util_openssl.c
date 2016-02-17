@@ -280,7 +280,7 @@ EVP_PKEY *_load_key(const char *file, int format, const char *pass, ENGINE *e)
 
 	if (file == NULL)
 	{
-		DEBUG_ERR_MSG("no keyfile specified\n");
+		DEBUG_ERR_MSG("no keyfile specified");
 		return pkey;
 	}
 

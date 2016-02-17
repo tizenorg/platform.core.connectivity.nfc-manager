@@ -17,12 +17,12 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 # for package file
-SET(dependents "aul glib-2.0 gio-unix-2.0 vconf dlog tapi appsvc libcurl bluetooth-api capi-network-bluetooth openssl deviced feedback capi-media-wav-player mm-keysound syspopup-caller notification capi-network-wifi capi-system-info sqlite3  cynara-client cynara-creds-gdbus cynara-session")
+SET(dependents "aul glib-2.0 gio-unix-2.0 vconf dlog tapi appsvc libcurl bluetooth-api capi-network-bluetooth openssl deviced feedback capi-media-wav-player mm-keysound syspopup-caller notification capi-network-wifi capi-system-info sqlite3 capi-network-wifi-direct capi-system-device cynara-client cynara-creds-gdbus cynara-session")
 
-#IF (TIZEN_TELEPHONY_ENABLED)
-	#MESSAGE("-DENABLE_TELEPHONY")
-	#ADD_DEFINITIONS(-DENABLE_TELEPHONY)
-#ENDIF (TIZEN_TELEPHONY_ENABLED)
+IF (TIZEN_TELEPHONY_ENABLED)
+	MESSAGE("-DENABLE_TELEPHONY")
+	ADD_DEFINITIONS(-DENABLE_TELEPHONY)
+ENDIF (TIZEN_TELEPHONY_ENABLED)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(manager_pkges REQUIRED ${dependents})
@@ -53,7 +53,7 @@ IF("${ARCH}" MATCHES "^arm.*")
 ENDIF()
 
 # for addons
-ADD_DEFINITIONS("-DADDON_HCE_NDEF")
+#ADD_DEFINITIONS("-DADDON_HCE_NDEF")
 #ADD_DEFINITIONS("-DADDON_HCE_PPSE")
 #ADD_DEFINITIONS("-DADDON_HCE_TMONEY")
 

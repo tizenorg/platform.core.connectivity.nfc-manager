@@ -170,7 +170,7 @@ static void test_call_set_ee_data_callback(GObject *source_object,
 				res,
 				&error) == FALSE)
 	{
-		DEBUG_ERR_MSG("Can not finish set_ee_data: %s\n",
+		DEBUG_ERR_MSG("Can not finish set_ee_data: %s",
 			error->message);
 		out_result = NET_NFC_IPC_FAIL;
 
@@ -653,6 +653,45 @@ net_nfc_error_e net_nfc_client_test_set_se_tech_type_sync(
 
 	return out_result;
 }
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_test_set_listen_tech_mask_sync(uint32_t tech)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+	GError *error = NULL;
+
+	DEBUG_CLIENT_MSG("net_nfc_client_test_set_listen_tech_mask_sync start");
+
+	if (test_proxy == NULL)
+	{
+		if(net_nfc_client_test_init() != NET_NFC_OK)
+		{
+			DEBUG_ERR_MSG("test_proxy fail");
+			return NET_NFC_NOT_INITIALIZED;
+		}
+	}
+
+	/* prevent executing daemon when nfc is off */
+	if (net_nfc_client_manager_is_activated() == false) {
+		return NET_NFC_NOT_ACTIVATED;
+	}
+
+	if (net_nfc_gdbus_test_call_set_listen_tech_mask_sync(test_proxy,
+					tech,
+					&result,
+					NULL,
+					&error) == FALSE)
+	{
+		DEBUG_ERR_MSG("can not call listen tech mask: %s",
+				error->message);
+		result = NET_NFC_IPC_FAIL;
+
+		g_error_free(error);
+	}
+
+	return result;
+}
+
 
 net_nfc_error_e net_nfc_client_test_init(void)
 {

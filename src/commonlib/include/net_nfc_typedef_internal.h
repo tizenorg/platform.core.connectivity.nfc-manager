@@ -465,7 +465,7 @@ net_nfc_llcp_param_t;
 
 typedef enum
 {
-	NET_NFC_INVALID = 0x00,
+	NET_NFC_SCREEN_INVALID = 0x00,
 	NET_NFC_SCREEN_OFF = 0x01,
 	NET_NFC_SCREEN_ON_LOCK = 0x02,
 	NET_NFC_SCREEN_ON_UNLOCK = 0x03,

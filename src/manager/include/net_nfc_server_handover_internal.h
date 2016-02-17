@@ -69,4 +69,11 @@ net_nfc_error_e net_nfc_server_handover_wps_do_connect(
 	net_nfc_server_handover_process_carrier_cb cb,
 	void *user_param);
 
+/* wifi-direct */
+net_nfc_error_e net_nfc_server_handover_wfd_do_pairing(
+	net_nfc_ch_carrier_s *carrier,
+	net_nfc_server_handover_process_carrier_cb cb,
+	void *user_param);
+
+
 #endif //__NET_NFC_SERVER_HANDOVER_INTERNAL_H__

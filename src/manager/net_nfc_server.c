@@ -240,6 +240,7 @@ void net_nfc_server_gdbus_deinit(void)
 	net_nfc_server_se_deinit();
 	net_nfc_server_snep_deinit();
 	net_nfc_server_system_handler_deinit();
+	net_nfc_server_hce_deinit();
 
 	net_nfc_server_controller_thread_deinit();
 

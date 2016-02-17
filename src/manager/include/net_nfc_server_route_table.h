@@ -18,7 +18,6 @@
 #define __NET_NFC_SERVER_ROUTE_TABLE_H__
 
 #include <gio/gio.h>
-#include <vconf.h>
 
 #include "net_nfc_typedef_internal.h"
 
@@ -57,6 +56,9 @@ void net_nfc_server_route_table_deinit();
 void net_nfc_server_route_table_iterate_handler(
 	net_nfc_server_route_table_handler_iter_cb cb, void *user_data);
 
+void net_nfc_server_route_table_iterate_handler_activated_last(
+	net_nfc_server_route_table_handler_iter_cb cb, void *user_data);
+
 route_table_handler_t *net_nfc_server_route_table_find_handler(
 	const char *package);
 
@@ -65,6 +67,9 @@ net_nfc_error_e net_nfc_server_route_table_add_handler(const char *id,
 
 net_nfc_error_e net_nfc_server_route_table_del_handler(const char *id,
 	const char *package, bool force);
+
+net_nfc_error_e net_nfc_server_route_table_update_handler_id(
+	const char *package, const char *id);
 
 net_nfc_error_e net_nfc_server_route_table_set_handler_activation(
 	const char *package, net_nfc_card_emulation_category_t category);
@@ -101,7 +106,10 @@ net_nfc_error_e net_nfc_server_route_table_del_aid(const char *id, const char *p
 net_nfc_error_e net_nfc_server_route_table_del_aids(const char *id, const char *package,
 	bool force);
 
-void net_nfc_server_route_table_iterate_aid(const char *package,
+void net_nfc_server_route_table_iterate_aids(
+	net_nfc_server_route_table_aid_iter_cb cb, void *user_data);
+
+void net_nfc_server_route_table_iterate_handler_aids(const char *package,
 	net_nfc_server_route_table_aid_iter_cb cb, void *user_data);
 
 aid_info_t *net_nfc_server_route_table_find_aid_by_id(const char *package,
@@ -115,7 +123,7 @@ net_nfc_error_e net_nfc_server_route_table_add_aid_by_id(const char *id,
 net_nfc_error_e net_nfc_server_route_table_del_aid_by_id(const char *id,
 	const char *aid, bool force);
 
-void net_nfc_server_route_table_iterate_aid_by_id(const char *id,
+void net_nfc_server_route_table_iterate_aids_by_id(const char *id,
 	net_nfc_server_route_table_aid_iter_cb cb, void *user_data);
 
 
@@ -133,6 +141,22 @@ net_nfc_error_e net_nfc_server_route_table_delete_aids_from_db(
 void net_nfc_server_route_table_update_category_handler(const char *package,
 	net_nfc_card_emulation_category_t category);
 
-net_nfc_error_e net_nfc_server_route_table_do_update(void);
+net_nfc_error_e net_nfc_server_route_table_do_update(bool routing);
+
+
+net_nfc_error_e net_nfc_server_route_table_get_storage_info(
+	net_nfc_card_emulation_category_t category, int *used, int *max);
+
+route_table_handler_t *net_nfc_server_route_table_get_preferred_handler();
+
+void net_nfc_server_route_table_set_preferred_handler(route_table_handler_t *handler);
+
+net_nfc_error_e net_nfc_server_route_table_update_preferred_handler();
+
+bool net_nfc_server_route_table_is_allowed_preferred_handler(route_table_handler_t *data);
+
+void net_nfc_server_route_table_unset_preferred_handler_by_id(const char* id);
+
+void net_nfc_server_route_table_preferred_handler_dump();
 
 #endif //__NET_NFC_SERVER_ROUTE_TABLE_H__

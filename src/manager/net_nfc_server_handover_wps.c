@@ -230,10 +230,10 @@ static bool _wifi_found_ap_cb(wifi_ap_h ap, void *user_data)
 
 	ret = wifi_ap_get_essid(ap, &ssid);
 	if (ret == WIFI_ERROR_NONE && ssid != NULL) {
-		DEBUG_MSG("ssid [%s]", ssid);
+		SECURE_MSG("ssid [%s]", ssid);
 
 		if (g_strcmp0(ssid, (char *)context[0]) == 0) {
-			DEBUG_MSG("found!! ssid [%s]", ssid);
+			SECURE_MSG("found!! ssid [%s]", ssid);
 
 			context[1] = ap;
 
@@ -259,7 +259,7 @@ static wifi_ap_h _wifi_search_ap(const char *ssid)
 	context[0] = (gpointer)ssid;
 	context[1] = NULL;
 
-	wifi_foreach_found_aps(_wifi_found_ap_cb, &context);
+	(void)wifi_foreach_found_aps(_wifi_found_ap_cb, &context);
 
 	return (wifi_ap_h)context[1];
 }
@@ -322,7 +322,7 @@ static void _wps_finish_do_connect(int result, wps_process_context_t *context)
 
 static void _wifi_connected_cb(wifi_error_e result, void *user_data)
 {
-	DEBUG_MSG("wifi_connect result [%d]", result);
+	DEBUG_SERVER_MSG("wifi_connect result [%d]", result);
 
 	_wps_finish_do_connect(result, user_data);
 }
@@ -332,12 +332,12 @@ static int __connect(wifi_ap_h ap, wps_process_context_t *context)
 	int result;
 	char *net_key;
 
-	wifi_ap_set_security_type(ap, _wps_get_security_type(context->config));
-	wifi_ap_set_encryption_type(ap, _wps_get_encryption_type(context->config));
+	(void)wifi_ap_set_security_type(ap, _wps_get_security_type(context->config));
+	(void)wifi_ap_set_encryption_type(ap, _wps_get_encryption_type(context->config));
 
 	net_key = _wps_get_string_property(context->config,
 		NET_NFC_WIFI_ATTRIBUTE_NET_KEY);
-	wifi_ap_set_passphrase(ap, net_key);
+	(void)wifi_ap_set_passphrase(ap, net_key);
 	g_free(net_key);
 
 	result = wifi_connect(ap, _wifi_connected_cb, context);
@@ -356,7 +356,7 @@ static void _connect(wps_process_context_t *context)
 	if (ssid != NULL) {
 		ap = _wifi_search_ap(ssid);
 		if (ap == NULL) {
-			DEBUG_MSG("no ap found");
+			DEBUG_SERVER_MSG("no ap found");
 
 			result = wifi_ap_create(ssid, &ap);
 			if (result == WIFI_ERROR_NONE) {
@@ -374,7 +374,7 @@ static void _connect(wps_process_context_t *context)
 				_wps_finish_do_connect(result, context);
 			}
 		} else if (_wifi_is_connected(ap) == false) {
-			DEBUG_MSG("found ap, but not connected");
+			DEBUG_SERVER_MSG("found ap, but not connected");
 
 			result = __connect(ap, context);
 			if (result != WIFI_ERROR_NONE) {
@@ -399,7 +399,7 @@ static void _connect(wps_process_context_t *context)
 /* activation */
 static void _wifi_scan_finished_cb(wifi_error_e result, void *user_data)
 {
-	DEBUG_MSG("_wifi_scan_finished_cb");
+	DEBUG_SERVER_MSG("_wifi_scan_finished_cb");
 
 	if (result == WIFI_ERROR_NONE) {
 		_connect(user_data);
@@ -412,7 +412,7 @@ static void _wifi_scan_finished_cb(wifi_error_e result, void *user_data)
 
 static void _wifi_activated_cb(wifi_error_e result, void *user_data)
 {
-	DEBUG_MSG("_wifi_activated_cb");
+	DEBUG_SERVER_MSG("_wifi_activated_cb");
 
 	if (result == WIFI_ERROR_NONE) {
 		int ret;
@@ -439,7 +439,7 @@ static int _wifi_activate(wps_process_context_t *context)
 		result = wifi_is_activated(&activated);
 		if (result == WIFI_ERROR_NONE) {
 			if (activated == false) {
-				DEBUG_MSG("wifi is off, try to activate");
+				DEBUG_SERVER_MSG("wifi is off, try to activate");
 				/* activate */
 				result = wifi_activate(_wifi_activated_cb, context);
 				if (result != WIFI_ERROR_NONE) {

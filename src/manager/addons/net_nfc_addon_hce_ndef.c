@@ -150,7 +150,7 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 		if (apdu->p1 == NET_NFC_HCE_P1_SELECT_BY_NAME) {
 			if (memcmp(apdu->data, ndef_aid,
 				MIN(sizeof(ndef_aid), apdu->lc)) == 0) {
-				DEBUG_SERVER_MSG("select ndef applet");
+				DEBUG_ADDON_MSG("select ndef applet");
 
 				/* bt on */
 				/* fill bt address */
@@ -177,14 +177,14 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 
 			if (memcmp(apdu->data, cc_fid,
 				MIN(sizeof(cc_fid), apdu->lc)) == 0) {
-				DEBUG_SERVER_MSG("select capability container");
+				DEBUG_ADDON_MSG("select capability container");
 
 				selected_fid = cc_fid;
 
 				__send_response(handle, NET_NFC_HCE_SW_SUCCESS, NULL, 0);
 			} else if (memcmp(apdu->data, ndef_fid,
 				MIN(sizeof(ndef_fid), apdu->lc)) == 0) {
-				DEBUG_SERVER_MSG("select ndef");
+				DEBUG_ADDON_MSG("select ndef");
 
 				selected_fid = ndef_fid;
 
@@ -255,18 +255,18 @@ static void __nfc_addon_hce_ndef_listener(net_nfc_target_handle_s *handle,
 {
 	switch (event) {
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
 		selected_fid = NULL;
 		selected_aid = NULL;
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
 		__process_command(handle, data);
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
 		selected_fid = NULL;
 		selected_aid = NULL;
 		break;

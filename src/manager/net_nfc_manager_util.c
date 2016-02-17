@@ -48,31 +48,31 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 
 	if (vconf_get_bool(VCONFKEY_SETAPPL_SOUND_STATUS_BOOL, &bSoundOn) != 0)
 	{
-		DEBUG_MSG("vconf_get_bool failed for Sound");
+		DEBUG_SERVER_MSG("vconf_get_bool failed for Sound");
 		return;
 	}
 
 	if (vconf_get_bool(VCONFKEY_SETAPPL_VIBRATION_STATUS_BOOL, &bVibrationOn) != 0)
 	{
-		DEBUG_MSG("vconf_get_bool failed for Vibration");
+		DEBUG_SERVER_MSG("vconf_get_bool failed for Vibration");
 		return;
 	}
 
 	if ((sound_type > NET_NFC_TASK_ERROR) || (sound_type < NET_NFC_TASK_START))
 	{
-		DEBUG_MSG("Invalid Sound Type");
+		DEBUG_SERVER_MSG("Invalid Sound Type");
 		return;
 	}
 
 	if (bVibrationOn)
 	{
-		DEBUG_MSG("Play Vibration");
+		DEBUG_SERVER_MSG("Play Vibration");
 
 		if (FEEDBACK_ERROR_NONE == feedback_initialize())
 		{
 			if (FEEDBACK_ERROR_NONE ==  feedback_play_type(FEEDBACK_TYPE_VIBRATION, FEEDBACK_PATTERN_SIP))
 			{
-				DEBUG_MSG("feedback_play_type success");
+				DEBUG_SERVER_MSG("feedback_play_type success");
 			}
 
 			feedback_deinitialize();
@@ -83,7 +83,7 @@ void net_nfc_manager_util_play_sound(net_nfc_sound_type_e sound_type)
 	{
 		char *sound_path = NULL;
 
-		DEBUG_MSG("Play Sound");
+		DEBUG_SERVER_MSG("Play Sound");
 
 		switch (sound_type)
 		{

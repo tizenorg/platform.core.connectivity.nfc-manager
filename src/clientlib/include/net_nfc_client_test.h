@@ -87,6 +87,9 @@ net_nfc_error_e net_nfc_client_test_init(void);
 
 void net_nfc_client_test_deinit(void);
 
+net_nfc_error_e net_nfc_client_test_set_listen_tech_mask_sync(uint32_t tech);
+
+
 #ifdef __cplusplus
 }
 #endif

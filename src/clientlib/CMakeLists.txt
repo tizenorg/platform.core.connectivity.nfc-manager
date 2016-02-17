@@ -18,7 +18,7 @@ IF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(clientlib_pkges REQUIRED dlog vconf)
+pkg_check_modules(clientlib_pkges REQUIRED dlog vconf gthread-2.0)
 
 FOREACH(flag ${clientlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

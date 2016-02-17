@@ -13,17 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __NET_NFC_SERVER_VCONF_H__
-#define __NET_NFC_SERVER_VCONF_H__
 
-void net_nfc_server_vconf_init(void);
+#ifndef __NET_NFC_CLIENT_HCE_IPC_H__
+#define __NET_NFC_CLIENT_HCE_IPC_H__
 
-void net_nfc_server_vconf_deinit(void);
+#include "net_nfc_typedef.h"
 
-bool net_nfc_check_csc_vconf(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-bool net_nfc_check_start_polling_vconf(void);
+/* internal */
+net_nfc_error_e net_nfc_client_hce_ipc_init();
+void net_nfc_client_hce_ipc_deinit();
+bool net_nfc_client_hce_ipc_is_initialized();
 
-void net_nfc_server_vconf_set_screen_on_flag(bool flag);
+bool net_nfc_server_hce_ipc_send_to_server(int type,
+	net_nfc_target_handle_s *handle, data_s *data);
 
-#endif //__NET_NFC_SERVER_VCONF_H__
+#ifdef __cplusplus
+}
+#endif
+
+#endif //__NET_NFC_CLIENT_HCE_IPC_H__

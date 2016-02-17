@@ -178,10 +178,10 @@ static void se_transaction_event(GObject *source_object,
 	INFO_MSG(">>> SIGNAL arrived");
 
 	if (fg_dispatch == true && focus_app_pid != getpgid(mypid)) {
-		DEBUG_MSG("skip transaction event, fg_dispatch [%d], focus_app_pid [%d]", fg_dispatch, focus_app_pid);
+		SECURE_MSG("skip transaction event, fg_dispatch [%d], focus_app_pid [%d]", fg_dispatch, focus_app_pid);
 		return;
 	}
-
+#ifdef CHECK_NFC_ACCESS_FOR_ESE
 	if (net_nfc_gdbus_secure_element_call_check_transaction_permission_sync(
 		NET_NFC_GDBUS_SECURE_ELEMENT(source_object),
 		arg_aid,
@@ -197,7 +197,7 @@ static void se_transaction_event(GObject *source_object,
 		DEBUG_ERR_MSG("not allowed process [%d]", result);
 		return;
 	}
-
+#endif
 	switch (arg_se_type)
 	{
 	case NET_NFC_SE_TYPE_UICC :
@@ -554,7 +554,7 @@ net_nfc_error_e net_nfc_client_se_get_secure_element_type_sync(
 			NULL,
 			&error) == true) {
 
-		DEBUG_CLIENT_MSG("type [%d]", type);
+		SECURE_MSG("type [%d]", type);
 		*se_type = type;
 	} else {
 		DEBUG_ERR_MSG("get secure element failed: %s", error->message);
@@ -1574,11 +1574,12 @@ net_nfc_error_e net_nfc_client_se_foreach_registered_handlers_sync(
 	if (result == NET_NFC_OK) {
 		GVariantIter iter;
 		const gchar *handler;
+		int count;
 
 		g_variant_iter_init(&iter, handlers);
 
-		while (g_variant_iter_loop(&iter, "(s)", &handler) == true) {
-			callback(handler, user_data);
+		while (g_variant_iter_loop(&iter, "(is)", &count, &handler) == true) {
+			callback(handler, count, user_data);
 		}
 	}
 
@@ -1728,6 +1729,130 @@ net_nfc_error_e net_nfc_client_se_remove_package_aids_sync(
 	return result;
 }
 
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_se_set_preferred_handler_sync(bool state)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+	GError *error = NULL;
+
+	if (se_proxy == NULL) {
+		result = net_nfc_client_se_init();
+		if (result != NET_NFC_OK) {
+			DEBUG_ERR_MSG("net_nfc_client_se_init failed, [%d]", result);
+
+			return NET_NFC_NOT_INITIALIZED;
+		}
+	}
+
+	if (net_nfc_gdbus_secure_element_call_set_preferred_handler_sync(
+		se_proxy,
+		state,
+		&result,
+		NULL, &error) == FALSE) {
+		DEBUG_ERR_MSG("net_nfc_gdbus_secure_element_call_set_preferred_handler_sync failed : %s", error->message);
+		result = NET_NFC_IPC_FAIL;
+
+		g_error_free(error);
+	}
+
+	return result;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_se_get_handler_storage_info_sync(
+	net_nfc_card_emulation_category_t category, int *used, int *max)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+	GError *error = NULL;
+
+	if (se_proxy == NULL) {
+		result = net_nfc_client_se_init();
+		if (result != NET_NFC_OK) {
+			DEBUG_ERR_MSG("net_nfc_client_se_init failed, [%d]", result);
+
+			return NET_NFC_NOT_INITIALIZED;
+		}
+	}
+
+	if (net_nfc_gdbus_secure_element_call_get_handler_storage_info_sync(
+		se_proxy,
+		category,
+		&result,
+		used,
+		max,
+		NULL, &error) == FALSE) {
+		DEBUG_ERR_MSG("net_nfc_gdbus_secure_element_call_get_handler_storage_info_sync failed : %s", error->message);
+		result = NET_NFC_IPC_FAIL;
+
+		g_error_free(error);
+	}
+
+	return result;
+}
+
+NET_NFC_EXPORT_API
+net_nfc_error_e net_nfc_client_se_get_conflict_handlers_sync(
+	const char *package, net_nfc_card_emulation_category_t category,
+	const char *aid, char ***handlers)
+{
+	net_nfc_error_e result = NET_NFC_OK;
+	GError *error = NULL;
+	GVariant *packages = NULL;
+
+	if (se_proxy == NULL) {
+		result = net_nfc_client_se_init();
+		if (result != NET_NFC_OK) {
+			DEBUG_ERR_MSG("net_nfc_client_se_init failed, [%d]", result);
+
+			return NET_NFC_NOT_INITIALIZED;
+		}
+	}
+
+	if (net_nfc_gdbus_secure_element_call_get_conflict_handlers_sync(
+		se_proxy,
+		package,
+		category,
+		aid,
+		&result,
+		&packages,
+		NULL, &error) == true) {
+		if (result == NET_NFC_DATA_CONFLICTED) {
+			GVariantIter iter;
+			gchar **pkgs;
+			size_t len;
+
+			g_variant_iter_init(&iter, packages);
+			len = g_variant_iter_n_children(&iter);
+
+			SECURE_MSG("conflict count [%d]", len);
+
+			if (len > 0) {
+				size_t i;
+				gchar *temp;
+
+				pkgs = g_new0(gchar *, len + 1);
+
+				for (i = 0; i < len; i++) {
+					if (g_variant_iter_next(&iter, "(s)", &temp) == true) {
+						SECURE_MSG("conflict package [%s]", temp);
+						pkgs[i] = g_strdup(temp);
+					} else {
+						DEBUG_ERR_MSG("g_variant_iter_next failed");
+					}
+				}
+
+				*handlers = pkgs;
+			}
+		}
+	} else {
+		DEBUG_ERR_MSG("net_nfc_gdbus_secure_element_call_get_conflict_handlers_sync failed : %s", error->message);
+		result = NET_NFC_IPC_FAIL;
+
+		g_error_free(error);
+	}
+
+	return result;
+}
 
 net_nfc_error_e net_nfc_client_se_init(void)
 {

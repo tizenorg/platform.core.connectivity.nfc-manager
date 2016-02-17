@@ -60,5 +60,18 @@ void net_nfc_server_se_transaction_received(void *info);
 
 void net_nfc_server_se_rf_field_on(void *info);
 
+void net_nfc_server_se_rf_field_off(void *info);
+
+void net_nfc_server_se_connected(void *info);
+
+bool net_nfc_server_se_notify_lcd_state_changed(net_nfc_screen_state_type_e state);
+
+void net_nfc_server_se_convert_to_binary(uint8_t *orig, size_t len,
+	uint8_t **dest, size_t *destLen);
+
+void net_nfc_server_se_create_deactivate_apdu_command(uint8_t *orig, uint8_t **dest, size_t *destLen);
+
+void net_nfc_server_se_deactivate_card(void);
+
 
 #endif //__NET_NFC_SERVER_SE_H__

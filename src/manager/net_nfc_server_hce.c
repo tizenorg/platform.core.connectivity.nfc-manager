@@ -29,10 +29,10 @@
 #include "net_nfc_server_manager.h"
 #include "net_nfc_server_route_table.h"
 #include "net_nfc_app_util_internal.h"
-#include "net_nfc_server_hce.h"
-
-/*TODO : */
 #include "net_nfc_app_util_internal.h"
+#include "net_nfc_server_hce_ipc.h"
+#include "net_nfc_server_hce.h"
+#include "appsvc.h"
 
 #define OPERATION_APDU_RECEIVED		"http://tizen.org/appcontrol/operation/nfc/card_emulation/apdu_received"
 #define OPERATION_TRANSACTION_RECEIVED	"http://tizen.org/appcontrol/operation/nfc/card_emulation/transaction_received"
@@ -138,7 +138,7 @@ static net_nfc_error_e _routing_table_add(const char *package, const char *id,
 
 	if (_routing_table_find_aid(package) == NULL) {
 		hce_listener_t *data;
-		DEBUG_SERVER_MSG("new hce package, [%s]", package);
+		SECURE_MSG("new hce package, [%s]", package);
 
 		data = g_new0(hce_listener_t, 1);
 
@@ -169,7 +169,7 @@ static void _routing_table_del(const char *package)
 
 	data = _routing_table_find_aid(package);
 	if (data != NULL) {
-		DEBUG_SERVER_MSG("remove hce package, [%s]", package);
+		SECURE_MSG("remove hce package, [%s]", package);
 
 		if (data->destroy_cb != NULL) {
 			data->destroy_cb(data->user_data);
@@ -204,7 +204,7 @@ static bool _del_by_id_cb(hce_listener_t *data, void *user_data)
 
 	if (data->id == NULL) {
 		if (id == NULL) {
-			DEBUG_MSG("remove context for nfc-manager");
+			DEBUG_SERVER_MSG("remove context for nfc-manager");
 
 			result = false;
 		} else {
@@ -212,7 +212,7 @@ static bool _del_by_id_cb(hce_listener_t *data, void *user_data)
 		}
 	} else {
 		if (id != NULL && g_ascii_strcasecmp(data->id, id) == 0) {
-			DEBUG_MSG("deleting package [%s:%s]", data->id, data->package);
+			SECURE_MSG("deleting package [%s:%s]", data->id, data->package);
 
 			_routing_table_del(data->package);
 
@@ -244,7 +244,7 @@ net_nfc_error_e net_nfc_server_hce_start_hce_handler(const char *package,
 	result = _routing_table_add(package, id, listener,
 		destroy_cb, user_data);
 	if (result == NET_NFC_OK) {
-		result = net_nfc_server_route_table_add_handler(id, package);
+		result = net_nfc_server_route_table_update_handler_id(package, id);
 	}
 
 	return result;
@@ -258,7 +258,7 @@ net_nfc_error_e net_nfc_server_hce_stop_hce_handler(const char *package)
 
 	_routing_table_del(package);
 
-	net_nfc_server_route_table_del_handler(NULL, package, false);
+	net_nfc_server_route_table_update_handler_id(package, NULL);
 
 	return NET_NFC_OK;
 }
@@ -296,7 +296,7 @@ net_nfc_error_e net_nfc_server_hce_send_apdu_response(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
+#if 0
 static void _emit_event_received_signal(GDBusConnection *connection,
 	const char *id, int event,
 	net_nfc_target_handle_h handle,
@@ -340,7 +340,7 @@ static void _hce_default_listener_cb(net_nfc_target_handle_s *handle,
 		if (context->id != NULL) {
 			/* app is running */
 			_emit_event_received_signal(context->connection,
-				context->id, event, handle, data);
+				context->id, (int)NET_NFC_HCE_EVENT_APDU_RECEIVED, handle, data);
 
 		} else {
 			/* launch app */
@@ -349,13 +349,21 @@ static void _hce_default_listener_cb(net_nfc_target_handle_s *handle,
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED :
-	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
-		DEBUG_SERVER_MSG("HCE %s", event == NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED ? "ACTIVATE" : "DEACTIVATE");
+		DEBUG_SERVER_MSG("HCE ACTIVATE");
 
 		if (context->id != NULL) {
 			/* app is running */
 			_emit_event_received_signal(context->connection,
-				context->id, event, handle, data);
+				context->id, (int)NET_NFC_HCE_EVENT_ACTIVATED, handle, data);
+		}
+		break;
+	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
+		DEBUG_SERVER_MSG("HCE DEACTIVATE");
+
+		if (context->id != NULL) {
+			/* app is running */
+			_emit_event_received_signal(context->connection,
+				context->id, (int)NET_NFC_HCE_EVENT_DEACTIVATED, handle, data);
 		}
 		break;
 
@@ -363,6 +371,51 @@ static void _hce_default_listener_cb(net_nfc_target_handle_s *handle,
 		break;
 	}
 }
+#else
+static void _hce_default_listener_cb(net_nfc_target_handle_s *handle,
+	int event, data_s *data, void *user_data)
+{
+	hce_client_context_s *context = (hce_client_context_s *)user_data;
+
+	if (context == NULL) {
+		return;
+	}
+
+	switch (event) {
+	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA :
+		if (context->id != NULL) {
+			/* app is running */
+			net_nfc_server_hce_send_to_client(context->id,
+				NET_NFC_HCE_EVENT_APDU_RECEIVED, handle, data);
+
+		} else {
+			/* launch app */
+			DEBUG_SERVER_MSG("launch apdu app!!");
+		}
+		break;
+
+	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED :
+		DEBUG_SERVER_MSG("HCE ACTIVATE");
+
+		if (context->id != NULL) {
+			/* app is running */
+			net_nfc_server_hce_send_to_all_client(NET_NFC_HCE_EVENT_ACTIVATED, handle, data);
+		}
+		break;
+	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
+		DEBUG_SERVER_MSG("HCE DEACTIVATE");
+
+		if (context->id != NULL) {
+			/* app is running */
+			net_nfc_server_hce_send_to_all_client(NET_NFC_HCE_EVENT_DEACTIVATED, handle, data);
+		}
+		break;
+
+	default :
+		break;
+	}
+}
+#endif
 
 static void _hce_user_data_destroy_cb(void *user_data)
 {
@@ -390,7 +443,7 @@ static void hce_start_hce_handler_thread_func(gpointer user_data)
 	g_assert(data->object != NULL);
 	g_assert(data->invocation != NULL);
 
-	INFO_MSG(">>> hce_start_hce_handler_thread_func!!");
+	DEBUG_SERVER_MSG(">>> hce_start_hce_handler_thread_func!!");
 
 	id = g_dbus_method_invocation_get_sender(data->invocation);
 
@@ -493,7 +546,7 @@ static void hce_stop_hce_handler_thread_func(gpointer user_data)
 	g_assert(data->object != NULL);
 	g_assert(data->invocation != NULL);
 
-	INFO_MSG(">>> hce_stop_hce_handler_thread_func!!");
+	DEBUG_SERVER_MSG(">>> hce_stop_hce_handler_thread_func!!");
 
 	id = g_dbus_method_invocation_get_sender(data->invocation);
 
@@ -584,7 +637,7 @@ static void hce_response_apdu_thread_func(gpointer user_data)
 	g_assert(detail->object != NULL);
 	g_assert(detail->invocation != NULL);
 
-	INFO_MSG(">>> hce_response_apdu_thread_func!!");
+	DEBUG_SERVER_MSG(">>> hce_response_apdu_thread_func!!");
 
 	net_nfc_util_gdbus_variant_to_data_s(detail->data, &apdu_data);
 
@@ -670,6 +723,62 @@ ERROR :
 }
 
 
+static void __hce_handle_send_apdu_response_thread_func(gpointer user_data)
+{
+	HceDataApdu *detail = (HceDataApdu *)user_data;
+	data_s *response;
+
+	g_assert(detail != NULL);
+	g_assert(detail->data != NULL);
+
+	DEBUG_SERVER_MSG(">>> __hce_handle_send_apdu_response_thread_func!!");
+
+	response = (data_s *)detail->data;
+
+	net_nfc_server_hce_send_apdu_response(detail->handle,
+		response);
+
+	net_nfc_util_free_data(response);
+
+	g_free(detail);
+}
+
+
+void net_nfc_server_hce_handle_send_apdu_response(
+	net_nfc_target_handle_s *handle, data_s *response)
+{
+	HceDataApdu *data;
+
+	data = g_try_new0(HceDataApdu, 1);
+	if (data == NULL) {
+		DEBUG_ERR_MSG("Memory allocation failed");
+
+		goto ERROR;
+	}
+
+	data->handle = (net_nfc_target_handle_s *)handle;
+	data->data = (GVariant *)net_nfc_util_duplicate_data(response); /* caution : invalid type casting */
+
+	if (net_nfc_server_controller_async_queue_push_force(
+		__hce_handle_send_apdu_response_thread_func, data) == FALSE) {
+		/* return error if queue was blocked */
+		DEBUG_SERVER_MSG("controller is processing important message..");
+
+		goto ERROR;
+	}
+
+	return;
+
+ERROR :
+	if (data != NULL) {
+		net_nfc_util_free_data((data_s *)data->data); /* caution : invalid type casting */
+
+		g_free(data);
+	}
+}
+
+/******************************************************************************/
+
 typedef struct _apdu_header_t
 {
 	uint8_t cla;
@@ -690,7 +799,7 @@ static bool __extract_parameter(apdu_header_t *apdu, size_t len, uint16_t *lc,
 	*le = -1;
 	*data = NULL;
 
-	DEBUG_SERVER_MSG("[%02X][%02X][%02X][%02X]", apdu->cla, apdu->ins, apdu->p1, apdu->p2);
+	SECURE_MSG("[%02X][%02X][%02X][%02X]", apdu->cla, apdu->ins, apdu->p1, apdu->p2);
 
 	if (len > l) {
 		if (len == l + 1) {
@@ -777,7 +886,7 @@ static bool __pre_process_apdu(net_nfc_target_handle_s *handle, data_s *cmd)
 						g_free(selected_aid);
 						selected_aid = g_strdup(aid);
 					} else {
-						DEBUG_ERR_MSG("file not found, [%s]", aid);
+						DEBUG_ERR_MSG("file not found");
 
 						/* send response */
 						uint8_t temp[] = { 0x6A, 0x82 };
@@ -827,8 +936,11 @@ static void hce_apdu_thread_func(gpointer user_data)
 
 	g_assert(data != NULL);
 
+	//recover session
+	net_nfc_server_route_table_update_preferred_handler();
+
 	if (data->event == NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA) {
-		INFO_MSG("[HCE] Command arrived, handle [0x%x], len [%d]", (int)data->handle, data->apdu.length);
+		SECURE_MSG("[HCE] Command arrived, handle [0x%x], len [%d]", (int)data->handle, data->apdu.length);
 
 		if (__pre_process_apdu(data->handle,
 			&data->apdu) == false) {
@@ -841,8 +953,32 @@ static void hce_apdu_thread_func(gpointer user_data)
 					hce_listener_t *listener;
 
 					listener = _routing_table_find_aid(handler->package);
-					if(listener != NULL)
-					{
+
+					if (!listener) {
+						apdu_header_t *apdu = (apdu_header_t *)data->apdu.buffer;
+						uint16_t lc, le;
+						uint8_t *aid_data;
+
+						if (__extract_parameter(apdu, data->apdu.length, &lc, &le, &aid_data) == true) {
+							if (apdu->ins == NET_NFC_HCE_INS_SELECT && apdu->p1 == NET_NFC_HCE_P1_SELECT_BY_NAME && lc > 2) {
+								bundle *bd;
+								char aid[1024];
+								int ret;
+								data_s temp_aid = { aid_data, lc };
+
+								bd = bundle_create();
+								net_nfc_util_binary_to_hex_string(&temp_aid, aid, sizeof(aid));
+								appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc/card_emulation/host_apdu_service");
+								appsvc_add_data(bd, "data", aid);
+								ret = aul_launch_app(handler->package, bd);
+								if (ret < 0) {
+									DEBUG_ERR_MSG("aul_launch_app failed, [%d]", ret);
+								}
+
+								bundle_free(bd);
+							}
+						}
+					} else {
 						listener->listener(data->handle,
 							data->event, &data->apdu,
 							listener->user_data);
@@ -867,7 +1003,7 @@ static void hce_apdu_thread_func(gpointer user_data)
 			DEBUG_SERVER_MSG("pre-processed data");
 		}
 	} else {
-		INFO_MSG("[HCE] %s!!!!, handle [0x%x]", data->event == NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED ? "Activated" : "Deactivated", (int)data->handle);
+		SECURE_MSG("[HCE] %s!!!!, handle [0x%x]", data->event == NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED ? "Activated" : "Deactivated", (int)data->handle);
 
 		_routing_table_iterate(_route_table_iter_cb, data);
 
@@ -975,11 +1111,12 @@ gboolean net_nfc_server_hce_init(GDBusConnection *connection)
 		connection,
 		"/org/tizen/NetNfcService/Hce",
 		&error);
-
 	if (result == TRUE) {
 		/*TODO : Make the Routing Table for AID!*/
 		/*TODO : Do i have to make other file for routing table?????*/
 		_routing_table_init();
+
+		net_nfc_server_hce_ipc_init();
 
 		net_nfc_server_gdbus_register_on_client_detached_cb(
 			_hce_on_client_detached_cb);
@@ -998,6 +1135,8 @@ void net_nfc_server_hce_deinit(void)
 {
 	if (hce_skeleton)
 	{
+		net_nfc_server_hce_ipc_deinit();
+
 		net_nfc_server_gdbus_unregister_on_client_detached_cb(
 			_hce_on_client_detached_cb);
 

@@ -91,7 +91,7 @@ net_nfc_error_e net_nfc_util_hce_extract_parameter(data_s *apdu,
 	apdu_data->le = NET_NFC_HCE_INVALID_VALUE;
 	apdu_data->data = NULL;
 
-	DEBUG_SERVER_MSG("[%02X][%02X][%02X][%02X]", header->cla, header->ins, header->p1, header->p2);
+	SECURE_MSG("[%02X][%02X][%02X][%02X]", header->cla, header->ins, header->p1, header->p2);
 
 	if (apdu->length > l) {
 		if (apdu->length == l + 1) {

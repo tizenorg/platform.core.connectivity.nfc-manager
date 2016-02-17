@@ -276,6 +276,30 @@ static void _wps_process_carrier_cb(net_nfc_error_e result,
 	_net_nfc_util_free_mem(context);
 }
 
+static void _wfd_process_carrier_cb(net_nfc_error_e result,
+	net_nfc_conn_handover_carrier_type_e type,
+	data_s *data,
+	void *user_param)
+{
+	_process_config_context_t *context =
+		(_process_config_context_t *)user_param;
+
+	if (result == NET_NFC_OK)
+	{
+		if (context->cb != NULL)
+		{
+			context->cb(result, type, data, context->user_param);
+		}
+	}
+	else
+	{
+		DEBUG_ERR_MSG("_wfd_process_carrier_cb failed [%d]",
+			result);
+	}
+
+	_net_nfc_util_free_mem(context);
+}
+
 static net_nfc_error_e _get_carrier_record_by_priority_order(
 	net_nfc_ch_message_s *request,
 	net_nfc_ch_carrier_s **carrier)
@@ -649,32 +673,32 @@ static int _iterate_create_carrier_configs(_create_config_context_t *context)
 	switch (context->current_type)
 	{
 	case NET_NFC_CONN_HANDOVER_CARRIER_BT :
-		DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
+		DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
 		net_nfc_server_handover_bt_get_carrier(
 			_bt_get_carrier_record_cb,
 			context);
 		break;
 
 	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS :
-		DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
+		DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
 		g_idle_add((GSourceFunc)_iterate_carrier_configs_step,
 			(gpointer)context);
 		break;
 
 	case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P :
-		DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P]");
+		DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P]");
 		g_idle_add((GSourceFunc)_iterate_carrier_configs_step,
 			(gpointer)context);
 		break;
 
 	case NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN :
-		DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
+		DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
 		g_idle_add((GSourceFunc)_iterate_carrier_configs_step,
 			(gpointer)context);
 		break;
 
 	default :
-		DEBUG_MSG("[unknown : %d]", context->current_type);
+		DEBUG_SERVER_MSG("[unknown : %d]", context->current_type);
 		g_idle_add((GSourceFunc)_iterate_carrier_configs_step,
 			(gpointer)context);
 		break;
@@ -908,7 +932,7 @@ static net_nfc_error_e _process_requester_carrier(net_nfc_ch_carrier_s *carrier,
 		switch (type)
 		{
 		case NET_NFC_CONN_HANDOVER_CARRIER_BT :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
 			net_nfc_server_handover_bt_prepare_pairing(
 			 	carrier,
 				_bt_process_carrier_cb,
@@ -916,21 +940,21 @@ static net_nfc_error_e _process_requester_carrier(net_nfc_ch_carrier_s *carrier,
 			break;
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
 			_net_nfc_util_free_mem(context);
 			break;
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P]");
 			_net_nfc_util_free_mem(context);
 			break;
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
 			break;
 
 		default :
-			DEBUG_MSG("[unknown]");
+			DEBUG_SERVER_MSG("[unknown]");
 			_net_nfc_util_free_mem(context);
 			break;
 		}
@@ -971,7 +995,7 @@ static net_nfc_error_e _process_selector_carrier(net_nfc_ch_carrier_s *carrier,
 		switch (type)
 		{
 		case NET_NFC_CONN_HANDOVER_CARRIER_BT :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_BT]");
 			net_nfc_server_handover_bt_do_pairing(
 				carrier,
 				_bt_process_carrier_cb,
@@ -979,20 +1003,28 @@ static net_nfc_error_e _process_selector_carrier(net_nfc_ch_carrier_s *carrier,
 			break;
 
 		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_WPS]");
 			net_nfc_server_handover_wps_do_connect(
 				carrier,
 				_wps_process_carrier_cb,
 				context);
 			break;
 
+		case NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P :
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_WIFI_P2P]");
+			net_nfc_server_handover_wfd_do_pairing(
+				carrier,
+				_wfd_process_carrier_cb,
+				context);
+			break;
+
 		case NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN :
-			DEBUG_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
+			DEBUG_SERVER_MSG("[NET_NFC_CONN_HANDOVER_CARRIER_UNKNOWN]");
 			_net_nfc_util_free_mem(context);
 			break;
 
 		default :
-			DEBUG_MSG("[unknown]");
+			DEBUG_SERVER_MSG("[unknown]");
 			_net_nfc_util_free_mem(context);
 			break;
 		}
@@ -2191,7 +2223,7 @@ static void _client_create_carrier_configs_cb(net_nfc_error_e result,
 		result = _convert_ndef_message_to_data(message, &context->data);
 		if (result == NET_NFC_OK)
 		{
-			DEBUG_MSG_PRINT_BUFFER(context->data.buffer, context->data.length);
+//			DEBUG_MSG_PRINT_BUFFER(context->data.buffer, context->data.length);
 
 			context->state = NET_NFC_LLCP_STEP_02;
 		}

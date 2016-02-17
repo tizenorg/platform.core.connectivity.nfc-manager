@@ -24,7 +24,7 @@ ENDIF("${CMAKE_BUILD_TYPE}" STREQUAL "")
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(commonlib_pkges REQUIRED
-		glib-2.0 gio-2.0 gio-unix-2.0 dlog bluetooth-api openssl aul pkgmgr-info)
+		glib-2.0 gio-2.0 gio-unix-2.0 dlog bluetooth-api openssl aul pkgmgr-info libsystemd-daemon)
 
 FOREACH(flag ${commonlib_pkges_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

@@ -164,7 +164,7 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 			uint8_t temp_label[] = { 'T', 'E', 'S', 'T' };
 			data_s label = { temp_label, sizeof(temp_label) };
 
-			DEBUG_SERVER_MSG("select ppse applet");
+			DEBUG_ADDON_MSG("select ppse applet");
 
 			len = __fill_fci(buffer, sizeof(buffer), &aid, &label, 1);
 
@@ -202,7 +202,7 @@ static void __process_command(net_nfc_target_handle_s *handle, data_s *cmd)
 			goto END;
 		}
 
-		DEBUG_SERVER_MSG("ppse loopback");
+		DEBUG_ADDON_MSG("ppse loopback");
 
 		if (apdu->le == 0) {
 			apdu->le = 255;
@@ -227,17 +227,17 @@ static void __nfc_addon_hce_ppse_listener(net_nfc_target_handle_s *handle,
 {
 	switch (event) {
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_ACTIVATED");
 		selected = false;
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA");
 		__process_command(handle, data);
 		break;
 
 	case NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED :
-		INFO_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
+		DEBUG_ADDON_MSG("NET_NFC_MESSAGE_ROUTING_HOST_EMU_DEACTIVATED");
 		selected = false;
 		break;
 

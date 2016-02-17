@@ -1,11 +1,12 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.1.102
+Version:    0.1.143
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    nfc-manager.service
+Source2:    nfc-manager.socket
 BuildRequires: cmake
 BuildRequires: pkgconfig(aul)
 BuildRequires: pkgconfig(glib-2.0)
@@ -25,6 +26,7 @@ BuildRequires: pkgconfig(mm-keysound)
 BuildRequires: pkgconfig(syspopup-caller)
 BuildRequires: pkgconfig(notification)
 BuildRequires: pkgconfig(capi-network-wifi)
+BuildRequires: pkgconfig(capi-network-wifi-direct)
 BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(pkgmgr-info)
@@ -33,6 +35,8 @@ BuildRequires: pkgconfig(libcurl)
 BuildRequires: pkgconfig(cynara-client)
 BuildRequires: pkgconfig(cynara-creds-gdbus)
 BuildRequires: pkgconfig(cynara-session)
+BuildRequires: pkgconfig(capi-system-device)
+BuildRequires: pkgconfig(libsystemd-daemon)
 BuildRequires: python
 BuildRequires: python-xml
 
@@ -106,6 +110,7 @@ LDFLAGS="$LDFLAGS" cmake . \
 
 mkdir -p %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants
 cp -af %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/
+cp -af %{SOURCE2} %{buildroot}%{_libdir}/systemd/system/
 
 mkdir -p %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants
 ln -s ../%{name}.service %{buildroot}%{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
@@ -164,6 +169,7 @@ systemctl daemon-reload
 %defattr(-,root,root,-)
 %{_bindir}/nfc-manager-daemon
 %{_libdir}/systemd/system/%{name}.service
+%{_libdir}/systemd/system/%{name}.socket
 %{_libdir}/systemd/system/multi-user.target.wants/%{name}.service
 %{_datadir}/dbus-1/system-services/org.tizen.NetNfcService.service
 %{_datadir}/license/%{name}
@@ -189,6 +195,8 @@ systemctl daemon-reload
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so
 %{_libdir}/libnfc-common-lib.so.*
+/usr/etc/package-manager/parserlib/metadata/libcardemulation_plugin.so
+/usr/etc/package-manager/parserlib/metadata/libuseese_plugin.so
 %{_datadir}/license/nfc-common-lib
 %{_datadir}/nfc-manager-daemon/sounds/Operation_sdk.wav
 

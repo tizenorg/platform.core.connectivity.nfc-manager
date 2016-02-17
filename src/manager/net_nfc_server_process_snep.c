@@ -1821,14 +1821,14 @@ net_nfc_error_e net_nfc_server_snep_client_request(
 		return NET_NFC_ALLOC_FAIL;
 	}
 
-	INFO_MSG("enqueued jobs [%d]", g_queue_get_length(&context->queue));
+	DEBUG_SERVER_MSG("enqueued jobs [%d]", g_queue_get_length(&context->queue));
 
 	/* if client is idle, starts sending request */
 	if (context->state == NET_NFC_LLCP_IDLE)
 	{
 		_net_nfc_server_snep_client_do_job(context);
 	} else {
-		INFO_MSG("client is working. this job will be enqueued");
+		DEBUG_SERVER_MSG("client is working. this job will be enqueued");
 	}
 
 	return result;
