@@ -175,11 +175,7 @@ static bool _get_credentials(GDBusMethodInvocation *invocation, net_nfc_privileg
 	break;
 	}
 
-	DEBUG_SERVER_MSG("user :%s , client :%s ,unique_name : %s, pid() : %d, privilege : %d",
-		user, client, sender_unique_name, pid, privilege);
-
 	client_session = cynara_session_from_pid(pid);
-
 
 	ret = cynara_check(p_cynara, client, client_session, user, privilege);
 	if (ret == CYNARA_API_ACCESS_ALLOWED)

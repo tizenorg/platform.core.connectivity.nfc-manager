@@ -33,11 +33,6 @@ static void net_nfc_server_vconf_lock_state_changed(keynode_t *key,
 static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 						void *user_data);
 
-#ifdef ENABLE_TELEPHONY
-static void net_nfc_server_vconf_flight_mode_changed(keynode_t *key,
-						void *user_data);
-#endif
-
 static void net_nfc_server_vconf_lock_state_changed(keynode_t *key,
 						void *user_data)
 {
@@ -220,7 +215,6 @@ void net_nfc_server_vconf_deinit(void)
 bool net_nfc_check_csc_vconf(void)
 {
 	int state = 0;;
-	gint result = 0;
 
 	if (state == true)
 	{

@@ -687,7 +687,6 @@ static net_nfc_error_e net_nfc_server_se_close_ese()
 static void _sim_apdu_cb(TapiHandle *handle, int result,
 		    void *data, void *user_data)
 {
-    TelSimAccessResult_t access_rt = (TelSimAccessResult_t)result;
     resp_apdu = (TelSimApduResp_t *)data;
     GMainLoop *loop = (GMainLoop *)user_data;
 
@@ -697,7 +696,6 @@ static void _sim_apdu_cb(TapiHandle *handle, int result,
 static void _sim_atr_cb(TapiHandle *handle, int result,
 		void *data, void *user_data)
 {
-    TelSimAccessResult_t access_rt = (TelSimAccessResult_t)result;
 	resp_atr  = (TelSimAtrResp_t *)data;
 	GMainLoop *loop = (GMainLoop *)user_data;
 
@@ -785,160 +783,6 @@ static bool _se_uicc_get_atr(net_nfc_target_handle_s *handle, data_s **atr)
 
 	return ret;
 }
-
-#ifdef ENABLE_TELEPHONY
-static void _se_uicc_prepare(void)
-{
-	gdbus_uicc_handle = tel_init(NULL);
-}
-
-static void _vconf_sim_status_cb(keynode_t *node, void *user_data)
-{
-	DEBUG_SERVER_MSG("VCONFKEY_TELEPHONY_SIM_STATUS [%d]", node->value.i);
-
-	switch (node->value.i) {
-	case VCONFKEY_TELEPHONY_SIM_STATUS_INIT_COMPLETED :
-		{
-			int se_policy;
-
-			gdbus_uicc_ready = SE_UICC_READY;
-
-			_se_uicc_prepare();
-
-			se_policy = __se_get_se_policy();
-
-			DEBUG_SERVER_MSG("current se policy [%d]", se_policy);
-
-			if (se_policy == SECURE_ELEMENT_POLICY_UICC_ON) {
-				net_nfc_server_se_apply_se_policy(SECURE_ELEMENT_POLICY_UICC_ON);
-			}
-		}
-		break;
-	case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_REMOVED :
-	case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_ERROR :
-	case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_BLOCKED :
-	case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_CRASHED :
-		gdbus_uicc_ready = SE_UICC_UNAVAILABLE;
-#if 0
-		if (__se_get_se_policy() == SECURE_ELEMENT_POLICY_UICC_ON) {
-			net_nfc_server_se_set_se_policy(SECURE_ELEMENT_POLICY_UICC_OFF);
-		}
-#endif
-		break;
-
-
-	case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_NOT_PRESENT :
-#if 0 		/* temp_patch_for_no_SIM_currency_issue */
-	{
-		int ret;
-		int se_type;
-		ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
-
-		if (ret == 0 &&
-			 se_type == VCONFKEY_NFC_SE_TYPE_UICC)
-		{
-			net_nfc_error_e result = NET_NFC_OK;
-			DEBUG_SERVER_MSG("_vconf_sim_status_cb  VCONFKEY_NFC_SE_TYPE_UICC but VCONFKEY_TELEPHONY_SIM_STATUS_CARD_NOT_PRESENT ");
-
-			/*turn off ESE*/
-			net_nfc_controller_set_secure_element_mode(
-				SECURE_ELEMENT_TYPE_ESE,
-				SECURE_ELEMENT_OFF_MODE,
-				&result);
-
-			/*turn on UICC*/
-			net_nfc_controller_set_secure_element_mode(
-				SECURE_ELEMENT_TYPE_UICC,
-				SECURE_ELEMENT_VIRTUAL_MODE,
-				&result);
-		}
-	}
-		break;
-#endif
-	default :
-		break;
-	}
-}
-
-static void _se_uicc_init(void)
-{
-	int status;
-
-	vconf_notify_key_changed(VCONFKEY_TELEPHONY_SIM_STATUS,
-		_vconf_sim_status_cb, NULL);
-
-	if (vconf_get_int(VCONFKEY_TELEPHONY_SIM_STATUS, &status) == 0) {
-		DEBUG_SERVER_MSG("VCONFKEY_TELEPHONY_SIM_STATUS [%d]", status);
-
-		switch (status) {
-		case VCONFKEY_TELEPHONY_SIM_STATUS_INIT_COMPLETED :
-			gdbus_uicc_ready = SE_UICC_READY;
-
-			_se_uicc_prepare();
-			break;
-
-		case VCONFKEY_TELEPHONY_SIM_STATUS_UNKNOWN :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_INITIALIZING :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_PIN_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_PUK_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_NCK_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_NSCK_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_SPCK_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_CCK_REQUIRED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_SIM_LOCK_REQUIRED :
-			gdbus_uicc_ready = SE_UICC_ON_PROGRESS;
-			break;
-
-		case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_NOT_PRESENT :
-#if 0 		/* temp_patch_for_no_SIM_currency_issue */
-		{
-			int ret;
-			int se_type;
-			ret = vconf_get_int(VCONFKEY_NFC_SE_TYPE, &se_type);
-
-			if (ret == 0 &&
-				 se_type == VCONFKEY_NFC_SE_TYPE_UICC)
-			{
-				net_nfc_error_e result = NET_NFC_OK;
-				DEBUG_SERVER_MSG("_se_uicc_init  VCONFKEY_NFC_SE_TYPE_UICC but VCONFKEY_TELEPHONY_SIM_STATUS_CARD_NOT_PRESENT ");
-
-				/*turn off ESE*/
-				net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_ESE,
-					SECURE_ELEMENT_OFF_MODE,
-					&result);
-
-				/*turn on UICC*/
-				net_nfc_controller_set_secure_element_mode(
-					SECURE_ELEMENT_TYPE_UICC,
-					SECURE_ELEMENT_VIRTUAL_MODE,
-					&result);
-			}
-		}
-			break;
-#endif
-		case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_ERROR :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_BLOCKED :
-		case VCONFKEY_TELEPHONY_SIM_STATUS_CARD_CRASHED :
-		default :
-			gdbus_uicc_ready = SE_UICC_UNAVAILABLE;
-			break;
-		}
-	}
-}
-
-static void _se_uicc_deinit()
-{
-	if (gdbus_uicc_handle != NULL) {
-		tel_deinit(gdbus_uicc_handle);
-
-		gdbus_uicc_handle = NULL;
-	}
-
-	vconf_ignore_key_changed(VCONFKEY_TELEPHONY_SIM_STATUS,
-		_vconf_sim_status_cb);
-}
-#endif
 
 static net_nfc_target_handle_s *_se_uicc_open(void)
 {
@@ -1166,9 +1010,6 @@ net_nfc_error_e net_nfc_server_se_change_wallet_mode(
 
 static void se_policy_apply_thread_func(gpointer user_data)
 {
-	net_nfc_error_e result;
-
-	result = net_nfc_server_se_apply_se_current_policy();
 }
 
 static void se_close_secure_element_thread_func(gpointer user_data)
@@ -3710,9 +3551,7 @@ static void se_set_preferred_handler_thread_func(gpointer user_data)
 	route_table_handler_t *handler;
 	net_nfc_error_e result = NET_NFC_OK;
 	bool ret;
-	pid_t pid;
 	const char *id;
-	char foreground[1024] = {0,};
 
 	g_assert(data != NULL);
 	g_assert(data->object != NULL);
@@ -3783,7 +3622,7 @@ static gboolean se_handle_set_preferred_handler(
 		goto ERROR;
 	}
 #endif
-	data = g_try_new0(SeDataAid, 1);
+	data = g_try_new0(SeSetPreferred, 1);
 	if (data == NULL)
 	{
 		DEBUG_ERR_MSG("Memory allocation failed");

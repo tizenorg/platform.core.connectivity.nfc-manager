@@ -182,7 +182,7 @@ static void _bt_carrier_record_cb(int result, bt_adapter_state_e adapter_state,
 
 static void _append_oob_data(net_nfc_carrier_config_s *config)
 {
-	net_nfc_error_e result;
+	int result;
 	unsigned char *hash;
 	unsigned char *randomizer;
 	int hash_len;
@@ -232,7 +232,7 @@ static net_nfc_error_e _bt_create_config_record(ndef_record_s **record)
 	char* bt_addr = NULL;
 	char *bt_name = NULL;
 	net_nfc_carrier_config_s *config = NULL;
-	net_nfc_error_e result;
+	int result;
 
 	if (record == NULL)
 	{
@@ -263,7 +263,7 @@ static net_nfc_error_e _bt_create_config_record(ndef_record_s **record)
 
 	result = net_nfc_util_add_carrier_config_property(
 		config, NET_NFC_BT_ATTRIBUTE_ADDRESS,
-		strlen(bt_addr), bt_addr);
+		strlen(bt_addr), (uint8_t *)bt_addr);
 	if (result != NET_NFC_OK)
 	{
 		DEBUG_ERR_MSG("net_nfc_util_add_carrier_config_property failed [%d]", result);
@@ -688,7 +688,7 @@ static int _bt_prepare_pairing(net_nfc_handover_bt_process_context_t *context)
 
 	case NET_NFC_LLCP_STEP_RETURN :
 		{
-			data_s temp = { context->remote_address, sizeof(context->remote_address) };
+			data_s temp = { (uint8_t *)context->remote_address, (uint32_t)sizeof(context->remote_address) };
 			data_s *data = NULL;
 
 			INFO_MSG("STEP return");
@@ -961,7 +961,7 @@ void _bt_bond_created_cb(int result, bt_device_info_s *device_info,
 static int _bt_do_pairing(net_nfc_handover_bt_process_context_t *context)
 {
 	int ret;
-	bt_adapter_state_e *adapter_state;
+	bt_adapter_state_e adapter_state;
 
 	if (context->result != NET_NFC_OK && context->result != NET_NFC_BUSY)
 	{
@@ -1223,7 +1223,7 @@ static int _bt_do_pairing(net_nfc_handover_bt_process_context_t *context)
 
 	case NET_NFC_LLCP_STEP_RETURN :
 		{
-			data_s temp = { context->remote_address, sizeof(context->remote_address) };
+			data_s temp = { (uint8_t *)context->remote_address, (uint32_t)sizeof(context->remote_address) };
 			data_s *data = NULL;
 
 			INFO_MSG("STEP return");

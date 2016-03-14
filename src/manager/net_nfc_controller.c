@@ -676,17 +676,6 @@ static void _remove_socket_info(net_nfc_llcp_socket_t socket)
 	}
 }
 
-static void _destroy_function(gpointer data)
-{
-	free(data);
-}
-
-static void _clear_socket_info()
-{
-	g_slist_free_full(llcp_sockets, _destroy_function);
-	llcp_sockets = NULL;
-}
-
 void net_nfc_controller_llcp_socket_error_cb(net_nfc_llcp_socket_t socket,
 	net_nfc_error_e result, void *data, void *user_param)
 {

@@ -39,7 +39,6 @@
 
 void __attribute__ ((constructor)) lib_init()
 {
-	g_type_init();
 }
 
 void __attribute__ ((destructor)) lib_fini()

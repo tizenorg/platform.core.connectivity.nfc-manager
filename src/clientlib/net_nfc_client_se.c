@@ -171,8 +171,6 @@ static void se_transaction_event(GObject *source_object,
 {
 	void *user_data = NULL;
 	net_nfc_client_se_transaction_event callback = NULL;
-	GError *error = NULL;
-	gint result = 0;
 	pid_t mypid = getpid();
 
 	INFO_MSG(">>> SIGNAL arrived");

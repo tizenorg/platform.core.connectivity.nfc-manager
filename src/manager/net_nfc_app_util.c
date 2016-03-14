@@ -1098,8 +1098,6 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 
 pid_t net_nfc_app_util_get_focus_app_pid()
 {
-	pid_t pid;
-
 /* Todo : ecore_x_window_focus_get is failed
 	ecore_x_init(":0");
 

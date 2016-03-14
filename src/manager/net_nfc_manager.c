@@ -125,14 +125,6 @@ int main(int argc, char *argv[])
 	GOptionContext *option_context;
 	GError *error = NULL;
 	bool check_csc = 0;
-	int result;
-
-	if (!g_thread_supported())
-	{
-		g_thread_init(NULL);
-	}
-
-	g_type_init();
 
 	option_context = g_option_context_new("Nfc manager");
 	g_option_context_add_main_entries(option_context,

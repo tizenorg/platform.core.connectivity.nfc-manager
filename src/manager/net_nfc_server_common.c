@@ -348,7 +348,7 @@ static void controller_llcp_event_cb(void *info, void *user_context)
 	net_nfc_request_llcp_msg_t *req_msg = info;
 
 	if(user_context != NULL)
-		req_msg->user_param = user_context;
+		req_msg->user_param = (uint32_t)user_context;
 
 	if (net_nfc_server_controller_async_queue_push_force(
 		_controller_llcp_event_cb, req_msg) == FALSE)

@@ -1070,12 +1070,11 @@ net_nfc_error_e net_nfc_server_route_table_update_preferred_handler()
 	char foreground[1024] = {0,};
 
 	if (preferred_handler != NULL && preferred_handler->package) {
-		bool ret;
 		pid_t pid;
 
 		//check match prefered and foreground app
 		pid = net_nfc_app_util_get_focus_app_pid();
-		ret = net_nfc_util_get_pkgid_by_pid(pid, foreground, sizeof(foreground));
+		net_nfc_util_get_pkgid_by_pid(pid, foreground, sizeof(foreground));
 
 		if (strcmp(foreground, preferred_handler->package) != 0) {
 			DEBUG_SERVER_MSG("[Preferred] Not match!!! foreground : %s, preferred : %s",
@@ -1089,6 +1088,7 @@ net_nfc_error_e net_nfc_server_route_table_update_preferred_handler()
 #ifdef PRINT_TABLE
 	net_nfc_server_route_table_preferred_handler_dump();
 #endif
+	return NET_NFC_OK;
 }
 
 bool net_nfc_server_route_table_is_allowed_preferred_handler(route_table_handler_t *handler)

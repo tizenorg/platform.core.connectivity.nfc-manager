@@ -389,7 +389,6 @@ static gboolean __on_io_event_cb(GIOChannel *channel, GIOCondition condition,
 bool net_nfc_server_hce_ipc_init()
 {
 	struct sockaddr_un saddrun_rv;
-	int ret;
 
 	/* initialize server context */
 	__hce_client_init();
