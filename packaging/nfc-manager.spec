@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.1.143
+Version:    0.1.144
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Apache-2.0
