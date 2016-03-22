@@ -1,9 +1,9 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.1.144
+Version:    0.1.145
 Release:    0
 Group:      Network & Connectivity/NFC
-License:    Apache-2.0
+License:    Flora-1.1
 Source0:    %{name}-%{version}.tar.gz
 Source1:    nfc-manager.service
 Source2:    nfc-manager.socket
