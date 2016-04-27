@@ -67,6 +67,11 @@ SET(COMMON_LIB_HEADER
 	include/net_nfc_util_handover.h
 	include/net_nfc_util_ndef_record.h
 	include/net_nfc_util_sign_record.h
+	include/net_nfc_debug_internal.h
+	include/net_nfc_util_gdbus_internal.h
+	net_nfc_gdbus.h
+	include/net_nfc_util_defines.h
+	include/net_nfc_util_hce.h
 )
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${NFC_COMMON_LIB}.pc.in ${CMAKE_CURRENT_SOURCE_DIR}/${NFC_COMMON_LIB}.pc)

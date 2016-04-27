@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.1.146
+Version:    0.1.147
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora-1.1
@@ -71,25 +71,6 @@ Requires:   nfc-common-lib = %{version}-%{release}
 This package contains the development files for NFC Common library.
 
 
-%package -n nfc-client-lib
-Summary:    NFC client library
-Group:      Development/Libraries
-Requires:   nfc-common-lib = %{version}-%{release}
-
-
-%description -n nfc-client-lib
-A library for Tizen NFC Client.
-
-
-%package -n nfc-client-lib-devel
-Summary:    NFC client library (devel)
-Group:      Network & Connectivity/Development
-Requires:   nfc-client-lib = %{version}-%{release}
-
-
-%description -n nfc-client-lib-devel
-This package contains the development files for NFC Client library.
-
 %build
 export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
@@ -117,7 +98,6 @@ ln -s ../%{name}.service %{buildroot}%{_libdir}/systemd/system/multi-user.target
 
 install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/nfc-common-lib
 install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/%{name}
-install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/nfc-client-lib
 #install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/nfc-client-test
 
 
@@ -140,14 +120,6 @@ systemctl daemon-reload
 if [ $1 == 1 ]; then
     systemctl restart %{name}.service
 fi
-
-
-%post -n nfc-client-lib
-/sbin/ldconfig
-
-/usr/sbin/setcap cap_mac_override+ep /usr/bin/nfc-manager-daemon
-
-%postun -n nfc-client-lib -p /sbin/ldconfig
 
 %postun
 /sbin/ldconfig
@@ -175,28 +147,11 @@ systemctl daemon-reload
 %{_datadir}/license/%{name}
 
 
-%files -n nfc-client-lib
-%manifest nfc-client-lib.manifest
-%defattr(-,root,root,-)
-%{_libdir}/libnfc.so
-%{_libdir}/libnfc.so.*
-%{_datadir}/license/nfc-client-lib
-
-
-%files -n nfc-client-lib-devel
-%manifest nfc-client-lib-devel.manifest
-%defattr(-,root,root,-)
-%{_libdir}/pkgconfig/nfc.pc
-%{_includedir}/nfc/*.h
-
-
 %files -n nfc-common-lib
 %manifest nfc-common-lib.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libnfc-common-lib.so
 %{_libdir}/libnfc-common-lib.so.*
-/usr/etc/package-manager/parserlib/metadata/libcardemulation_plugin.so
-/usr/etc/package-manager/parserlib/metadata/libuseese_plugin.so
 %{_datadir}/license/nfc-common-lib
 %{_datadir}/nfc-manager-daemon/sounds/Operation_sdk.wav
 

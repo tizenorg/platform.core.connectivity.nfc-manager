@@ -69,7 +69,7 @@ SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -pie")
 
 ADD_EXECUTABLE(${NFC_MANAGER_DAEMON} ${MANAGER_SRCS})
 
-TARGET_LINK_LIBRARIES(${NFC_MANAGER_DAEMON} ${manager_pkges_LDFLAGS} pthread dl rt nfc-common-lib nfc)
+TARGET_LINK_LIBRARIES(${NFC_MANAGER_DAEMON} ${manager_pkges_LDFLAGS} pthread dl rt nfc-common-lib)
 LINK_DIRECTORIES(${CMAKE_BUILD_DIR}/src/commonlib ${CMAKE_BUILD_DIR}/src/clientlib)
 INSTALL(TARGETS ${NFC_MANAGER_DAEMON} DESTINATION bin)
 
