@@ -59,6 +59,7 @@ pid_t net_nfc_server_gdbus_get_pid(const char *name)
 		g_variant_get(_ret, "(u)", &pid);
 		g_variant_unref(_ret);
 	}
+	g_error_free(error);
 
 	return pid;
 }
@@ -98,6 +99,10 @@ static void _on_name_owner_changed(GDBusConnection *connection,
 
 	_name_owner_changed((GDBusProxy *)connection,
 		name, old_owner, new_owner, user_data);
+
+	g_free(name);
+	g_free(old_owner);
+	g_free(new_owner);
 }
 
 static void _subscribe_name_owner_changed_event()

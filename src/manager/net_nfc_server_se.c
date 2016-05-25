@@ -691,6 +691,7 @@ static void _sim_apdu_cb(TapiHandle *handle, int result,
     GMainLoop *loop = (GMainLoop *)user_data;
 
 	g_main_loop_quit(loop);
+	g_main_loop_unref(loop);
 }
 
 static void _sim_atr_cb(TapiHandle *handle, int result,
@@ -700,6 +701,7 @@ static void _sim_atr_cb(TapiHandle *handle, int result,
 	GMainLoop *loop = (GMainLoop *)user_data;
 
 	g_main_loop_quit(loop);
+	g_main_loop_unref(loop);
 }
 
 
@@ -1894,6 +1896,10 @@ END :
 		data->object,
 		data->invocation,
 		result);
+
+	g_object_unref(data->invocation);
+	g_object_unref(data->object);
+	g_free(data);
 }
 
 static gboolean se_handle_get_card_emulation_mode(

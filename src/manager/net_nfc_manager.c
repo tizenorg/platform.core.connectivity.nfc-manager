@@ -196,6 +196,8 @@ int main(int argc, char *argv[])
 	g_main_loop_run(loop);
 
 EXIT :
+	g_main_loop_unref(loop);
+
 	net_nfc_server_vconf_deinit();
 	net_nfc_server_gdbus_deinit();
 

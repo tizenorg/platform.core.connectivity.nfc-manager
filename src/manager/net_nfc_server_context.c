@@ -145,6 +145,7 @@ static bool _get_credentials(GDBusMethodInvocation *invocation, net_nfc_privileg
 	ret = cynara_creds_gdbus_get_client(connection, sender_unique_name, CLIENT_METHOD_DEFAULT, &client);
 	if (ret != CYNARA_API_SUCCESS) {
 		DEBUG_SERVER_MSG("cynara_creds_gdbus_get_client() failed");
+		g_free(user);
 		return false;
 	}
 
@@ -177,9 +178,25 @@ static bool _get_credentials(GDBusMethodInvocation *invocation, net_nfc_privileg
 
 	client_session = cynara_session_from_pid(pid);
 
+	if (!client_session) {
+		DEBUG_SERVER_MSG("cynara_session_from_pid() failed");
+		g_free(client);
+		g_free(user);
+		return false;
+	}
+
 	ret = cynara_check(p_cynara, client, client_session, user, privilege);
 	if (ret == CYNARA_API_ACCESS_ALLOWED)
 		INFO_MSG("cynara PASS");
+
+	g_free(client_session);
+	g_free(client);
+	g_free(user);
+
+	if (p_cynara) {
+		cynara_finish(p_cynara);
+		p_cynara = NULL;
+	}
 
 	return (ret == CYNARA_API_ACCESS_ALLOWED) ? true : false;
 }
