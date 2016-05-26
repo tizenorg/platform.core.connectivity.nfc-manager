@@ -964,15 +964,20 @@ static void hce_apdu_thread_func(gpointer user_data)
 								bundle *bd;
 								char aid[1024];
 								int ret;
+								uid_t uid = 0;
 								data_s temp_aid = { aid_data, lc };
 
 								bd = bundle_create();
 								net_nfc_util_binary_to_hex_string(&temp_aid, aid, sizeof(aid));
 								appsvc_set_operation(bd, "http://tizen.org/appcontrol/operation/nfc/card_emulation/host_apdu_service");
 								appsvc_add_data(bd, "data", aid);
-								ret = aul_launch_app(handler->package, bd);
-								if (ret < 0) {
-									DEBUG_ERR_MSG("aul_launch_app failed, [%d]", ret);
+
+								if (net_nfc_util_get_login_user(&uid) == true) {
+									ret = aul_launch_app_for_uid(handler->package, bd, uid);
+									if (ret < 0)
+										DEBUG_ERR_MSG("aul_launch_app_for_uid failed, uid [%d] ret [%d]", uid, ret);
+								} else {
+									DEBUG_ERR_MSG("net_nfc_util_get_login_user is failed");
 								}
 
 								bundle_free(bd);

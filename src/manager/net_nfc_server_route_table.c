@@ -1116,6 +1116,12 @@ void net_nfc_server_route_table_preferred_handler_dump()
 
 	//check match prefered and foreground app
 	pid = net_nfc_app_util_get_focus_app_pid();
+
+	if (pid <= 0) {
+		DEBUG_ERR_MSG("focus app is not exist. pid is %d", (int)pid);
+		return;
+	}
+
 	net_nfc_util_get_pkgid_by_pid(pid, foreground, sizeof(foreground));
 
 	DEBUG_SERVER_MSG("------------------------------");
@@ -1346,6 +1352,7 @@ route_table_handler_t *net_nfc_server_route_table_find_handler_by_id(
 	char package[1024];
 
 	if (__get_package_name(id, package, sizeof(package)) == true) {
+		DEBUG_SERVER_MSG("caller package_name is %s", package);
 		result = net_nfc_server_route_table_find_handler(package);
 	} else {
 		result = NULL;

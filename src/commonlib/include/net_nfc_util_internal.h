@@ -92,6 +92,7 @@ bool net_nfc_util_aid_is_prefix(const char *aid);
 bool net_nfc_util_aid_is_matched(const char *aid_criteria,
 	const char *aid_target);
 
+bool net_nfc_util_get_login_user(uid_t *uid);
 bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len);
 
 bool net_nfc_util_hex_string_to_binary(const char *str, data_s *result);

@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <systemd/sd-daemon.h>
+#include <systemd/sd-login.h>
 
 // platform header
 #include "aul.h"
@@ -658,6 +659,43 @@ bool net_nfc_util_aid_is_matched(const char *aid_criteria,
 	return result;
 }
 
+bool net_nfc_util_get_login_user(uid_t *uid)
+{
+	int i, ret;
+	uid_t *uids;
+	int uid_count;
+
+	uid_count = sd_get_uids(&uids);
+	if (uid_count <= 0) {
+		DEBUG_ERR_MSG("sd_get_uids failed [%d]", uid_count);
+		return false;
+	}
+
+	for (i = 0; i < uid_count ; i++) {
+		char *state = NULL;
+
+		ret = sd_uid_get_state(uids[i], &state);
+
+		if (ret < 0) {
+			DEBUG_ERR_MSG("sd_uid_get_state failed [%d]", ret);
+		} else {
+			if (!strncmp(state, "online", 6)) {
+				*uid = uids[i];
+				free(state);
+				free(uids);
+				return true;
+			}
+		}
+
+		free(state);
+	}
+
+	DEBUG_ERR_MSG("not exist login user");
+
+	free(uids);
+	return false;
+}
+
 bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len)
 {
 	pkgmgrinfo_appinfo_h appinfo = NULL;
@@ -665,9 +703,16 @@ bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len)
 	char package[1024];
 	int ret;
 	bool result = false;
+	uid_t uid = 0;
+
+	if (net_nfc_util_get_login_user(&uid) == false) {
+		DEBUG_ERR_MSG("net_nfc_util_get_login_user is failed");
+
+		goto END;
+	}
 
 	/* get pkgid id from pid */
-	ret = aul_app_get_pkgname_bypid(pid, package, sizeof(package));
+	ret = aul_app_get_appid_bypid_for_uid(pid, package, sizeof(package), uid);
 	if (ret < 0) {
 		DEBUG_ERR_MSG("aul_app_get_pkgname_bypid failed [%d]", ret);
 

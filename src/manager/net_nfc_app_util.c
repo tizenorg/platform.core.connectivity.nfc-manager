@@ -29,7 +29,6 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
-#include <systemd/sd-login.h>
 
 #include <bundle_internal.h>
 #include "appsvc.h"
@@ -803,7 +802,14 @@ static bool _net_nfc_app_util_get_data_from_record(ndef_record_s *record, char *
 void net_nfc_app_util_aul_launch_app(char* package_name, bundle* kb)
 {
 	int result = 0;
-	if((result = aul_launch_app(package_name, kb)) < 0)
+	uid_t uid = 0;
+
+	if (net_nfc_util_get_login_user(&uid) == false) {
+		DEBUG_ERR_MSG("net_nfc_util_get_login_user is failed");
+		return;
+	}
+
+	if((result = aul_launch_app_for_uid(package_name, kb, uid)) < 0)
 	{
 		switch(result)
 		{
@@ -1097,47 +1103,20 @@ int net_nfc_app_util_decode_base64(const char *buffer, uint32_t buf_len, uint8_t
 	return ret;
 }
 
-static int __find_login_user(uid_t *uid)
-{
-	uid_t *uids;
-	int ret, i;
-	char *state;
-
-	ret = sd_get_uids(&uids);
-	if (ret <= 0)
-		return -1;
-
-	for (i = 0; i < ret ; i++) {
-		if (sd_uid_get_state(uids[i], &state) < 0) {
-			free(uids);
-			return -1;
-		} else {
-			if (!strncmp(state, "online", 6)) {
-				*uid = uids[i];
-				free(uids);
-				free(state);
-				return 0;
-			}
-		}
-	}
-
-	free(uids);
-	free(state);
-	return -1;
-}
-
 int _iter_func(const aul_app_info *info, void *data)
 {
 	uid_t uid = 0;
 	int *pid = (int *)data;
 	int status;
 
-	if(__find_login_user(&uid) < 0) {
-		DEBUG_ERR_MSG("__find_login_user is failed");
+	if (net_nfc_util_get_login_user(&uid) == false) {
+		DEBUG_ERR_MSG("net_nfc_util_get_login_user is failed");
 		return 0;
 	}
 
 	status = aul_app_get_status_bypid_for_uid(info->pid, uid);
+
+	DEBUG_SERVER_MSG("login user is %d, pid is %d, status is %d", (int)uid, info->pid, status);
 
 	if(status == STATUS_VISIBLE || status == STATUS_FOCUS) {
 		*pid = info->pid;
@@ -1152,8 +1131,8 @@ pid_t net_nfc_app_util_get_focus_app_pid()
 	uid_t uid = 0;
 	int pid = 0;
 
-	if(__find_login_user(&uid) < 0) {
-		DEBUG_ERR_MSG("__find_login_user is failed");
+	if (net_nfc_util_get_login_user(&uid) == false) {
+		DEBUG_ERR_MSG("net_nfc_util_get_login_user is failed");
 		return -1;
 	}
 
