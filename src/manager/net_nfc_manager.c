@@ -51,6 +51,26 @@ static GMainLoop *loop = NULL;
 
 static bool net_nfc_check_mode_conditions();
 
+static void _net_nfc_disable_ese()
+{
+	int value;
+
+	DEBUG_SERVER_MSG("_net_nfc_disable_ese");
+
+	if (vconf_get_bool(VCONFKEY_NFC_ESE_DISABLE, &value) < 0)
+		return;
+
+	if (value == true)
+	{
+		DEBUG_SERVER_MSG("Set the se_type , wallet mode HCE");
+
+		vconf_set_int(VCONFKEY_NFC_SE_TYPE, VCONFKEY_NFC_SE_POLICY_HCE_ON);
+
+		vconf_set_int(VCONFKEY_NFC_WALLET_MODE, VCONFKEY_NFC_WALLET_MODE_HCE);
+	}
+}
+
+
 void net_nfc_manager_quit()
 {
 	DEBUG_SERVER_MSG("net_nfc_manager_quit kill the nfc-manager daemon!!");
@@ -84,7 +104,11 @@ static void on_bus_acquired(GDBusConnection *connection,
 		return;
 	}
 
+	_net_nfc_disable_ese();
+
 	net_nfc_server_vconf_init();
+
+	net_nfc_server_se_deactivate_card();
 
 	if (state == 1)
 		net_nfc_server_manager_set_active(TRUE);

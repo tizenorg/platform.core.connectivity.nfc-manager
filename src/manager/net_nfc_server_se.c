@@ -3042,10 +3042,6 @@ static void se_remove_package_aids_thread_func(gpointer user_data)
 	DEBUG_SERVER_MSG(">>> Call se_remove_package_aids_thread_func");
 
 	result = net_nfc_server_route_table_delete_aids_from_db(detail->package);
-	if (result == NET_NFC_OK) {
-		result = net_nfc_server_route_table_del_handler(NULL,
-			detail->package, true);
-	}
 
 	net_nfc_gdbus_secure_element_complete_remove_package_aids(
 		detail->object, detail->invocation, result);

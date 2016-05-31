@@ -1630,6 +1630,15 @@ static net_nfc_error_e __route_table_del_aid(const char *id,
 				break;
 			}
 		}
+
+		if (data->aids[0]->len == 0) {
+			result = net_nfc_server_route_table_del_handler(id, package, force);
+			if (result == NET_NFC_OK) {
+				INFO_MSG("route table package removed");
+			} else {
+				DEBUG_ERR_MSG("net_nfc_server_route_table_del_handler failed, [%d]", result);
+			}
+		}
 	}
 
 	return result;
@@ -1678,7 +1687,7 @@ net_nfc_error_e net_nfc_server_route_table_del_aid(const char *id,
 {
 	net_nfc_error_e result = NET_NFC_OK;
 
-	result = __route_table_del_aid(id, package, aid, false);
+	result = __route_table_del_aid(id, package, aid, force);
 	if (result == NET_NFC_OK) {
 	} else {
 		DEBUG_ERR_MSG("__route_table_del_aid failed, [%d]", result);
@@ -1728,6 +1737,15 @@ net_nfc_error_e net_nfc_server_route_table_del_aids(const char *id,
 				g_ptr_array_remove_index(data->aids[0], i);
 			} else {
 				SECURE_MSG("cannot remove aid because it stored in manifest, aid [%s]", info->aid);
+			}
+		}
+
+		if (data->aids[0]->len == 0) {
+			result = net_nfc_server_route_table_del_handler(id, package, force);
+			if (result == NET_NFC_OK) {
+				INFO_MSG("route table package removed");
+			} else {
+				DEBUG_ERR_MSG("net_nfc_server_route_table_del_handler failed, [%d]", result);
 			}
 		}
 	} else {

@@ -1,7 +1,7 @@
 [Socket]
 ListenStream=/tmp/.nfc-hce.sock
 SocketMode=0777
-SmackLabelIPIn=nfc-manager::card_emul
+SmackLabelIPIn=*
 SmackLabelIPOut=@
 
 Service=nfc-manager.service

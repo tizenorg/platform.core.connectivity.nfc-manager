@@ -399,8 +399,6 @@ bool net_nfc_server_hce_ipc_init()
 
 	///////////////////////////////
 
-	(void)remove(NET_NFC_HCE_SERVER_DOMAIN);
-
 	memset(&saddrun_rv, 0, sizeof(struct sockaddr_un));
 
 	hce_server_socket = net_nfc_util_get_fd_from_systemd();

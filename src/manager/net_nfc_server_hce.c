@@ -940,7 +940,7 @@ static void hce_apdu_thread_func(gpointer user_data)
 	net_nfc_server_route_table_update_preferred_handler();
 
 	if (data->event == NET_NFC_MESSAGE_ROUTING_HOST_EMU_DATA) {
-		SECURE_MSG("[HCE] Command arrived, handle [0x%x], len [%d]", (int)data->handle, data->apdu.length);
+		DEBUG_SERVER_MSG("[HCE] Command arrived, handle [0x%x], len [%d]", (int)data->handle, data->apdu.length);
 
 		if (__pre_process_apdu(data->handle,
 			&data->apdu) == false) {
