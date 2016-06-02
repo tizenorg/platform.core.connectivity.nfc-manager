@@ -93,7 +93,7 @@ static void net_nfc_server_vconf_pm_state_changed(keynode_t *key,
 static void net_nfc_server_vconf_se_type_changed(keynode_t *key,
 						void *user_data)
 {
-	net_nfc_server_se_policy_apply();
+	net_nfc_server_se_apply_se_current_policy();
 
 	net_nfc_server_route_table_do_update(net_nfc_server_manager_get_active());
 }

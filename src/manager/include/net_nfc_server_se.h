@@ -23,7 +23,6 @@
 
 
 /***************************************************************/
-void net_nfc_server_se_policy_apply();
 
 net_nfc_se_type_e net_nfc_server_se_get_se_type();
 

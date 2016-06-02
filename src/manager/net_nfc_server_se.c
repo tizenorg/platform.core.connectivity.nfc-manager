@@ -258,25 +258,6 @@ static net_nfc_card_emulation_mode_t __se_get_se_state(
 	return state;
 }
 
-void net_nfc_server_se_policy_apply()
-{
-	if (se_skeleton == NULL)
-	{
-		DEBUG_ERR_MSG("net_nfc_server_manager is not initialized");
-
-		return;
-	}
-
-	DEBUG_SERVER_MSG("se policy apply start");
-
-	if (net_nfc_server_controller_async_queue_push(
-					se_policy_apply_thread_func,
-					NULL) == FALSE)
-	{
-		DEBUG_ERR_MSG("can not push to controller thread");
-	}
-}
-
 net_nfc_card_emulation_mode_t net_nfc_server_se_get_se_state()
 {
 	net_nfc_card_emulation_mode_t state;
