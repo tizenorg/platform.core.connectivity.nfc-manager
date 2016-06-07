@@ -718,12 +718,17 @@ bool net_nfc_util_get_pkgid_by_pid(pid_t pid, char *pkgid, size_t len)
 
 		goto END;
 	}
+	DEBUG_ERR_MSG("package name is %s", package);
 
+	/* Get application info from root user */
 	ret = pkgmgrinfo_appinfo_get_appinfo(package, &appinfo);
 	if (ret < 0) {
-		DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_appinfo failed, [%d]", ret);
-
-		goto END;
+		/* If application info not exist in root user, then get information from login user */
+		ret = pkgmgrinfo_appinfo_get_usr_appinfo(package, uid, &appinfo);
+		if (ret < 0) {
+			DEBUG_ERR_MSG("pkgmgrinfo_appinfo_get_appinfo failed, [%d]", ret);
+			goto END;
+		}
 	}
 
 	ret = pkgmgrinfo_appinfo_get_pkgid(appinfo, &temp);
