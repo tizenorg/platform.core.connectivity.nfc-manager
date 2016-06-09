@@ -213,7 +213,7 @@ const char *net_nfc_get_log_tag();
 
 #define SECURE_MSG(format, args...) \
 	do {\
-		SECURE_LOGD(format, ##args);\
+		NFC_LOGD(format, ##args);\
 		if (nfc_log_file) \
 		{ \
 			struct tm *local_tm; \

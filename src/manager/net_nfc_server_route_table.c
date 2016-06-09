@@ -1215,15 +1215,15 @@ static bool _display_route_table_cb(const char *package,
 {
 	int i;
 	if (preferred_handler == handler) {
-		SECURE_LOGD(" + Preferred PACKAGE [%s|%s]", handler->package, handler->id);
+		DEBUG_SERVER_MSG(" + Preferred PACKAGE [%s|%s]", handler->package, handler->id);
 	} else {
-		SECURE_LOGD(" + PACKAGE [%s|%s]", handler->package, handler->id);
+		DEBUG_SERVER_MSG(" + PACKAGE [%s|%s]", handler->package, handler->id);
 	}
 
 	for (i = 0; i < handler->aids[0]->len; i++) {
 		aid_info_t *info = (aid_info_t *)handler->aids[0]->pdata[i];
 
-		SECURE_LOGD(" +-- AID [%s], SE [%s], CATEGORY [%s%s], MANIFEST [%s]%s",
+		DEBUG_SERVER_MSG(" +-- AID [%s], SE [%s], CATEGORY [%s%s], MANIFEST [%s]%s",
 			info->aid,
 			__get_se_name(info->se_type),
 			info->category == NET_NFC_CARD_EMULATION_CATEGORY_PAYMENT ? "payment" : "other",
@@ -1237,9 +1237,9 @@ static bool _display_route_table_cb(const char *package,
 
 static void __display_route_table()
 {
-	SECURE_LOGD(" +------------------------------------------------+");
+	DEBUG_SERVER_MSG(" +------------------------------------------------+");
 	net_nfc_server_route_table_iterate_handler(_display_route_table_cb, NULL);
-	SECURE_LOGD(" +------------------------------------------------+");
+	DEBUG_SERVER_MSG(" +------------------------------------------------+");
 }
 #endif
 static bool __activation_iter_cb(const char *package,
