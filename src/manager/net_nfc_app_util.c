@@ -922,6 +922,7 @@ void _string_to_binary(const char *input, uint8_t *output, uint32_t *length)
 
 int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
 {
+	uid_t uid = 0;
 	bundle *bd = NULL;
 
 	/* launch */
@@ -967,7 +968,10 @@ int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_
 		appsvc_add_data(bd, "data", param_string);
 	}
 
-	appsvc_run_service(bd, 0, NULL, NULL);
+	if (net_nfc_util_get_login_user(&uid) == true) {
+		SECURE_MSG("launch app uid : %d", uid);
+		appsvc_usr_run_service(bd, 0, NULL, NULL, uid);
+	}
 
 	bundle_free(bd);
 
@@ -976,6 +980,7 @@ int net_nfc_app_util_launch_se_transaction_app(net_nfc_se_type_e se_type, uint8_
 
 int net_nfc_app_util_launch_se_off_host_apdu_service_app(net_nfc_se_type_e se_type, uint8_t *aid, uint32_t aid_len, uint8_t *param, uint32_t param_len)
 {
+	uid_t uid = 0;
 	bundle *bd = NULL;
 
 	/* launch */
@@ -1021,7 +1026,10 @@ int net_nfc_app_util_launch_se_off_host_apdu_service_app(net_nfc_se_type_e se_ty
 		appsvc_add_data(bd, "data", param_string);
 	}
 
-	appsvc_run_service(bd, 0, NULL, NULL);
+	if (net_nfc_util_get_login_user(&uid) == true) {
+		SECURE_MSG("launch app uid : %d", uid);
+		appsvc_usr_run_service(bd, 0, NULL, NULL, uid);
+	}
 
 	bundle_free(bd);
 
