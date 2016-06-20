@@ -2,4 +2,5 @@
 Name=org.tizen.NetNfcService
 Exec=/bin/false
 SystemdService=nfc-manager.service
-User=system
+User=network_fw
+Group=network_fw

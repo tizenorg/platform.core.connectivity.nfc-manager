@@ -104,17 +104,21 @@ install -D -m 0644 LICENSE.Flora  %{buildroot}/%{_datadir}/license/%{name}
 %post
 /sbin/ldconfig
 
-mkdir -p -m 700 /opt/usr/data/nfc-manager-daemon
-chown system:system /opt/usr/data/nfc-manager-daemon
+mkdir -p -m 777 /opt/usr/data/nfc-manager-daemon
+chown network_fw:network_fw /opt/usr/data/nfc-manager-daemon
+chsmack -a "System" /opt/usr/data/nfc-manager-daemon
 
 mkdir -p -m 744 /opt/usr/share/nfc_debug
-chown system:system /opt/usr/share/nfc_debug
+chown network_fw:network_fw /opt/usr/share/nfc_debug
+chsmack -a "System" /opt/usr/share/nfc_debug
 
 mkdir -p -m 744 /opt/usr/share/nfc-manager-daemon
-chown system:system /opt/usr/share/nfc-manager-daemon
+chown network_fw:network_fw /opt/usr/share/nfc-manager-daemon
+chsmack -a "System" /opt/usr/share/nfc-manager-daemon
 
 mkdir -p -m 744 /opt/usr/share/nfc-manager-daemon/message
-chown system:system /opt/usr/share/nfc-manager-daemon/message
+chown network_fw:network_fw /opt/usr/share/nfc-manager-daemon/message
+chsmack -a "System" /opt/usr/share/nfc-manager-daemon/message
 
 systemctl daemon-reload
 if [ $1 == 1 ]; then

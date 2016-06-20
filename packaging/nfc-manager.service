@@ -9,6 +9,8 @@ ExecStart=/usr/bin/nfc-manager-daemon
 KillSignal=SIGKILL
 MemoryLimit=30M
 Sockets=nfc-manager.socket
+User=network_fw
+Group=network_fw
 
 [Install]
 WantedBy=multi-user.target

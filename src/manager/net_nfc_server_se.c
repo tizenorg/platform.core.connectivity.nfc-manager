@@ -991,10 +991,6 @@ net_nfc_error_e net_nfc_server_se_change_wallet_mode(
 	return result;
 }
 
-static void se_policy_apply_thread_func(gpointer user_data)
-{
-}
-
 static void se_close_secure_element_thread_func(gpointer user_data)
 {
 	SeDataHandle *detail = (SeDataHandle *)user_data;
@@ -4243,8 +4239,7 @@ void net_nfc_server_se_create_deactivate_apdu_command(uint8_t *orig, uint8_t **d
 {
 }
 
-#define CSA_USEESE_PATH "/csa/useese"
-#define CSA_USEESE_FILE_PATH "/csa/useese/aid.dat"
+#define USEESE_FILE_PATH "/opt/usr/data/nfc-manager-daemon/aid.dat"
 #define FIRST_BOOT_USEESE_FILE_PATH  "/opt/usr/share/nfc_debug/is_first_boot.dat"
 
 static void net_nfc_server_se_deactivated_card_thread_func(gpointer user_data)
@@ -4305,7 +4300,7 @@ static void net_nfc_server_se_deactivated_card_thread_func(gpointer user_data)
 	}
 
 
-	fp = fopen(CSA_USEESE_FILE_PATH, "r");
+	fp = fopen(USEESE_FILE_PATH, "r");
 	if (!fp) {
 		DEBUG_SERVER_MSG("fp is null");
 		DEBUG_ERR_MSG( "aid.dat open error = %dn", errno);
@@ -4421,7 +4416,7 @@ static void net_nfc_server_se_deactivated_card_thread_func(gpointer user_data)
 			}
 			g_list_free_full(list, (GDestroyNotify)free);
 
-			result = remove(CSA_USEESE_FILE_PATH);
+			result = remove(USEESE_FILE_PATH);
 			if (result != 0) {
 				DEBUG_ERR_MSG("remove failed, [%d]", result);
 			}
