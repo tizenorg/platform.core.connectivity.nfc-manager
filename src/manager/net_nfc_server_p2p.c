@@ -62,6 +62,17 @@ static void p2p_send_data_thread_func(gpointer user_data)
 
 	handle = GUINT_TO_POINTER(p2p_data->p2p_handle);
 
+#if TIZEN_EMULATOR
+	net_nfc_gdbus_p2p_complete_send(p2p_data->p2p,
+		p2p_data->invocation,
+		NET_NFC_OK);
+	net_nfc_util_clear_data(&p2p_data->data);
+
+	g_object_unref(p2p_data->invocation);
+	g_object_unref(p2p_data->p2p);
+
+	g_free(p2p_data);
+#else
 	result = net_nfc_server_snep_default_client_start(
 		handle,
 		SNEP_REQ_PUT,
@@ -81,6 +92,7 @@ static void p2p_send_data_thread_func(gpointer user_data)
 
 		g_free(p2p_data);
 	}
+#endif
 }
 
 static gboolean p2p_handle_send(NetNfcGDbusP2p *p2p,

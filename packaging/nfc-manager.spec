@@ -1,6 +1,6 @@
 Name:       nfc-manager
 Summary:    NFC framework manager
-Version:    0.1.148
+Version:    0.1.149
 Release:    0
 Group:      Network & Connectivity/NFC
 License:    Flora-1.1
@@ -84,6 +84,9 @@ LDFLAGS="$LDFLAGS" cmake . \
 		-DTIZEN_TELEPHONY_ENABLED=1 \
 %ifarch aarch64 x86_64
 		-DTIZEN_ARCH_64=1 \
+%endif
+%ifarch %{ix86} x86_64
+		-DTIZEN_EMULATOR=1 \
 %endif
 
 %install
