@@ -181,8 +181,6 @@ static void se_send_apdu_thread_func(gpointer user_data);
 
 static void se_set_data_thread_func(gpointer user_data);
 
-static void se_policy_apply_thread_func(gpointer user_data);
-
 static gboolean se_handle_close_secure_element(
 			NetNfcGDbusSecureElement *object,
 			GDBusMethodInvocation *invocation,
