@@ -11,6 +11,7 @@ MemoryLimit=30M
 Sockets=nfc-manager.socket
 User=network_fw
 Group=network_fw
+SmackProcessLabel=System
 
 [Install]
 WantedBy=multi-user.target
